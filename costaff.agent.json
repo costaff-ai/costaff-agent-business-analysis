@@ -1,6 +1,6 @@
 {
   "name": "costaff-agent-business-analysis",
-  "description": "接收任意數據，自動選擇圖表類型、生成視覺化、撰寫分析敘事，產出 PDF 報告或投影片。",
+  "description": "專業的商業分析與視覺化專家。專長：將原始數據轉化為具備完整多國語言支援（如中文）的高品質圖表、視覺化分析與精美 PDF 報告。",
   "version": "0.1.0",
   "a2a_service": "agent-business-analysis",
   "port": 8081,
