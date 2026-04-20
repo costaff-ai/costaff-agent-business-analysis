@@ -5,7 +5,8 @@ from a2a.types import AgentCard
 from agent import business_analysis_agent
 
 PORT = int(os.getenv("PORT", "8081"))
-PUBLIC_HOST = os.getenv("PUBLIC_HOST", "localhost")
+# Use the service name as defined in the generated compose fragment
+PUBLIC_HOST = os.getenv("PUBLIC_HOST", "costaff-ext-ba-agent")
 
 # Minimal agent card — no individual tool skills exposed to parent agent.
 agent_card = AgentCard(
@@ -13,7 +14,9 @@ agent_card = AgentCard(
     url=f"http://{PUBLIC_HOST}:{PORT}",
     description=business_analysis_agent.description,
     version="1.0.0",
-    capabilities={},
+    capabilities={
+        "display_name": "AI 數據分析與報告人員"
+    },
     skills=[],
     default_input_modes=["text/plain"],
     default_output_modes=["text/plain"],

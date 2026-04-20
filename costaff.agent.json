@@ -2,10 +2,8 @@
   "name": "business-analysis-agent",
   "description": "接收任意數據，自動選擇圖表類型、生成視覺化、撰寫分析敘事，產出 PDF 報告或投影片。",
   "version": "0.1.0",
-  "a2a_service": {
-    "port": 8081,
-    "health_path": "/.well-known/agent.json"
-  },
+  "a2a_service": "business-analysis-agent",
+  "port": 8081,
   "public_port": 18101,
   "env_required": ["GOOGLE_API_KEY"],
   "env_optional": [
@@ -16,6 +14,7 @@
     "LITELLM_API_KEY",
     "BUSINESS_ANALYSIS_AGENT_MCP_URLS"
   ],
+  "health_path": "/.well-known/agent.json",
   "mcp_configurable": true,
   "mcp_env_var": "BUSINESS_ANALYSIS_AGENT_MCP_URLS"
 }

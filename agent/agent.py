@@ -67,7 +67,7 @@ business_analysis_agent = LlmAgent(
         "A business intelligence reporting agent that accepts any data source — "
         "workspace files (JSON/CSV), raw numbers, or structured text — "
         "autonomously selects appropriate chart types, generates visualisations, "
-        "writes analytical narrative, and produces a PDF report or slide deck. "
+        "writes analytical narrative, and produces a PDF report or PowerPoint (PPTX) slide deck. "
         "Does not perform computation or modelling; focuses solely on presentation and insight."
     ),
     instruction=AGENT_INSTRUCTION,
