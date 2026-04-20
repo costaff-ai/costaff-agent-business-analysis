@@ -6,7 +6,7 @@ from agent import business_analysis_agent
 
 PORT = int(os.getenv("PORT", "8081"))
 # Use the service name as defined in the generated compose fragment
-PUBLIC_HOST = os.getenv("PUBLIC_HOST", "costaff-ba-agent")
+PUBLIC_HOST = os.getenv("PUBLIC_HOST", "costaff-agent-business-analysis")
 
 # Minimal agent card — no individual tool skills exposed to parent agent.
 agent_card = AgentCard(

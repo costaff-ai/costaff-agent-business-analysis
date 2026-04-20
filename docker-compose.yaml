@@ -1,5 +1,5 @@
 services:
-  business-analysis-agent:
+  agent-business-analysis:
     build:
       context: ./agent
     container_name: costaff-agent-business-analysis
