@@ -47,7 +47,7 @@ if raw_extra:
     except json.JSONDecodeError:
         logger.error("BUSINESS_ANALYSIS_AGENT_MCP_URLS is not valid JSON, skipping extra MCPs")
 
-model_provider = os.getenv("COSTAFF_AGENT_MODEL_PROVIDER", "gemini").lower()
+model_provider = (os.getenv("BUSINESS_ANALYSIS_AGENT_MODEL_PROVIDER") or os.getenv("COSTAFF_AGENT_MODEL_PROVIDER") or "gemini").lower()
 model_name = os.getenv("BUSINESS_ANALYSIS_AGENT_MODEL", "gemini-2.5-flash")
 
 preferred_lang = os.getenv("COSTAFF_PREFERRED_LANGUAGE", "Traditional Chinese (繁體中文)")
