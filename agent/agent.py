@@ -10,25 +10,22 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from google.adk.agents import LlmAgent
 from google.adk.tools.mcp_tool import McpToolset
-from google.adk.tools.mcp_tool.mcp_session_manager import SseServerParams, StreamableHTTPServerParams
+from google.adk.tools.mcp_tool.mcp_session_manager import StreamableHTTPServerParams
 from utils import AGENT_INSTRUCTION
 
 def get_connection_params(entry):
     if isinstance(entry, str):
-        url, headers, transport = entry, None, "sse" if "/sse" in entry else "streamable"
+        url, headers = entry, None
     else:
-        url       = entry.get("url", "")
-        headers   = entry.get("headers") or None
-        transport = entry.get("transport", "streamable")
+        url     = entry.get("url", "")
+        headers = entry.get("headers") or None
     if not url:
         raise ValueError("MCP entry has no URL")
-    if transport == "sse" or "/sse" in url:
-        return SseServerParams(url=url, headers=headers)
     return StreamableHTTPServerParams(url=url, headers=headers)
 
 # Own MCP — always connected
-MCP_VIZ_URL = os.getenv("MCP_VIZ_URL", "http://mcp-viz-report:8083/sse")
-tools = [McpToolset(connection_params=SseServerParams(url=MCP_VIZ_URL))]
+MCP_VIZ_URL = os.getenv("MCP_VIZ_URL", "http://mcp-viz-report:8083/mcp")
+tools = [McpToolset(connection_params=StreamableHTTPServerParams(url=MCP_VIZ_URL))]
 logger.info(f"Viz-Report MCP URL: {MCP_VIZ_URL}")
 
 # Additional MCPs configured via mateclaw dashboard (VIZ_REPORT_AGENT_MCP_URLS)
@@ -66,7 +63,12 @@ else:
 viz_report_agent = LlmAgent(
     name="viz_report_agent",
     model=selected_model,
-    description="讀取分析結果，生成圖表視覺化與 HTML 報告，回傳報告路徑。",
+    description=(
+        "A data visualization and reporting agent that produces charts and PDF reports from pre-computed results. "
+        "Accepts a workspace file path (JSON/CSV) or structured text content from a previous coding-agent run. "
+        "Outputs a PDF report file path as the final result. "
+        "Does not perform calculations, training, or data processing."
+    ),
     instruction=AGENT_INSTRUCTION,
     tools=tools,
 )

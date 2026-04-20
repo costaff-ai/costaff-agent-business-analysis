@@ -343,5 +343,4 @@ def export_pdf(html_filename: str, output_filename: str) -> str:
 
 
 if __name__ == "__main__":
-    transport = os.getenv("MCP_TRANSPORT", "sse")
-    mcp.run(transport=transport)
+    mcp.run(transport="streamable-http")
