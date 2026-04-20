@@ -1,0 +1,21 @@
+{
+  "name": "viz-report-agent",
+  "description": "讀取分析結果，生成圖表視覺化與 HTML 報告，回傳報告路徑。",
+  "version": "0.0.1",
+  "a2a_service": {
+    "port": 8081,
+    "health_path": "/.well-known/agent.json"
+  },
+  "public_port": 18101,
+  "env_required": ["GOOGLE_API_KEY"],
+  "env_optional": [
+    "VIZ_REPORT_AGENT_MODEL",
+    "MATECLAW_AGENT_MODEL_PROVIDER",
+    "LITELLM_MODEL_NAME",
+    "LITELLM_API_BASE",
+    "LITELLM_API_KEY",
+    "VIZ_REPORT_AGENT_MCP_URLS"
+  ],
+  "mcp_configurable": true,
+  "mcp_env_var": "VIZ_REPORT_AGENT_MCP_URLS"
+}

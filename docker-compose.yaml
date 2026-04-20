@@ -1,0 +1,35 @@
+services:
+  viz-report-agent:
+    build:
+      context: ./agent
+    environment:
+      - PORT=8081
+      - PUBLIC_HOST=viz-report-agent
+      - MCP_VIZ_URL=http://mcp-viz-report:8083/sse
+      - CODING_WORKSPACE_DIR=/app/data/coding_workspace
+      - REPORTS_DIR=/app/data/reports
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - VIZ_REPORT_AGENT_MODEL=${VIZ_REPORT_AGENT_MODEL:-gemini-2.5-flash}
+      - MATECLAW_AGENT_MODEL_PROVIDER=${MATECLAW_AGENT_MODEL_PROVIDER:-gemini}
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mcp-viz-report
+    restart: on-failure
+    volumes:
+      - viz_report_data:/app/data
+
+  mcp-viz-report:
+    build:
+      context: ./mcp
+    environment:
+      - MCP_TRANSPORT=sse
+      - MCP_VIZ_PORT=8083
+      - CODING_WORKSPACE_DIR=/app/data/coding_workspace
+      - REPORTS_DIR=/app/data/reports
+    restart: on-failure
+    volumes:
+      - viz_report_data:/app/data
+
+volumes:
+  viz_report_data:

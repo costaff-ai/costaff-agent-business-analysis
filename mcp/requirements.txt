@@ -1,0 +1,5 @@
+mcp[cli]
+matplotlib
+numpy
+weasyprint
+markdown
