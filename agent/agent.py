@@ -25,9 +25,16 @@ def get_connection_params(entry):
 
 # Own MCP — always connected
 # Try to use the service name derived from costaff naming convention first
-DEFAULT_MCP_URL = "http://costaff-ext-ba-agent-mcp-business-analysis:8083/mcp"
+mcp_token = os.getenv("MCP_SECRET_KEY", "REDACTED")
+DEFAULT_MCP_URL = "http://costaff-ext-ba-agent-mcp-business-analysis:8081/mcp"
 MCP_BA_URL = os.getenv("MCP_BA_URL", DEFAULT_MCP_URL)
-tools = [McpToolset(connection_params=StreamableHTTPServerParams(url=MCP_BA_URL))]
+
+mcp_params = StreamableHTTPServerParams(
+    url=MCP_BA_URL, 
+    headers={"Authorization": f"Bearer {mcp_token}"}
+)
+
+tools = [McpToolset(connection_params=mcp_params)]
 logger.info(f"Business Analysis MCP URL: {MCP_BA_URL}")
 
 # Additional MCPs configured via CoStaff dashboard (BUSINESS_ANALYSIS_AGENT_MCP_URLS)
