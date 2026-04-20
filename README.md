@@ -131,7 +131,7 @@ CoStaff reads `costaff.agent.json`, builds and starts the containers, registers 
 | `LITELLM_MODEL_NAME` | ❌ | — | Model name for LiteLLM provider |
 | `LITELLM_API_BASE` | ❌ | — | LiteLLM API base URL |
 | `LITELLM_API_KEY` | ❌ | — | LiteLLM API key |
-| `MCP_BA_URL` | ❌ | `http://mcp-business-analysis:8083/mcp` | Internal MCP server URL |
+| `MCP_BA_URL` | ❌ | `http://costaff-mcp-business-analysis:8083/mcp` | Internal MCP server URL |
 | `WORKSPACE_DIR` | ❌ | `/app/data/coding_workspace` | Input directory |
 | `REPORTS_DIR` | ❌ | `/app/data/reports` | Output directory for reports |
 | `BUSINESS_ANALYSIS_AGENT_MCP_URLS` | ❌ | — | JSON dict of extra MCP servers |
