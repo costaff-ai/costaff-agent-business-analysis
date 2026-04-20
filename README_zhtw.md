@@ -133,7 +133,7 @@ CoStaff 會讀取 `costaff.agent.json`，自動建立容器、註冊 Agent，並
 | `LITELLM_API_KEY` | ❌ | — | LiteLLM API Key |
 | `MCP_BA_URL` | ❌ | `http://costaff-mcp-business-analysis:8083/mcp` | 內部 MCP Server URL |
 | `WORKSPACE_DIR` | ❌ | `/app/data/coding_workspace` | 資料輸入目錄 |
-| `REPORTS_DIR` | ❌ | `/app/data/reports` | 報告輸出目錄 |
+| `AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR` | ❌ | `/app/data/reports` | 報告輸出目錄 |
 | `BUSINESS_ANALYSIS_AGENT_MCP_URLS` | ❌ | — | 額外 MCP Server 的 JSON 設定 |
 
 ---

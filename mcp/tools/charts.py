@@ -1,7 +1,8 @@
 import os
 import json
 import traceback
-from core import mcp, REPORTS_DIR, ensure_dir
+from pathlib import Path
+from core import mcp, AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR, ensure_dir
 
 PALETTE = ["#4F86C6", "#F4845F", "#6DBE72", "#F7C948", "#9B7FD4", "#4CC9C9", "#E07DB3", "#A0A0A0"]
 
@@ -50,9 +51,8 @@ def generate_chart(
     """
     import numpy as np
     plt = _setup_matplotlib()
-    ensure_dir(REPORTS_DIR)
+    ensure_dir(AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR)
 
-    from pathlib import Path
     data = json.loads(data_json)
     fig, ax = plt.subplots(figsize=(9, 6))
 
@@ -150,7 +150,7 @@ def generate_chart(
             ax.set_ylabel(ylabel)
 
         plt.tight_layout()
-        out_path = str(Path(REPORTS_DIR) / output_filename)
+        out_path = str(Path(AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR) / output_filename)
         plt.savefig(out_path, dpi=150, bbox_inches="tight")
         plt.close(fig)
         return f"[OK] Chart saved: {out_path}"

@@ -8,7 +8,7 @@ services:
       - PUBLIC_HOST=costaff-agent-business-analysis
       - MCP_BA_URL=http://costaff-mcp-business-analysis:8083/mcp
       - WORKSPACE_DIR=/app/data
-      - REPORTS_DIR=/app/data/agent-business-analysis
+      - AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR=/app/data/agent-business-analysis
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - BUSINESS_ANALYSIS_AGENT_MODEL=${BUSINESS_ANALYSIS_AGENT_MODEL:-gemini-2.5-flash}
       - COSTAFF_AGENT_MODEL_PROVIDER=${COSTAFF_AGENT_MODEL_PROVIDER:-gemini}
@@ -28,10 +28,11 @@ services:
     environment:
       - MCP_BA_PORT=8083
       - WORKSPACE_DIR=/app/data
-      - REPORTS_DIR=/app/data/agent-business-analysis
+      - AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR=/app/data/agent-business-analysis
     restart: on-failure
     volumes:
       - costaff_data:/app/data
 
 volumes:
   costaff_data:
+    name: costaff_data

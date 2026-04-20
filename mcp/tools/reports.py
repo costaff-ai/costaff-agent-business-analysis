@@ -4,7 +4,7 @@ import traceback
 from datetime import datetime
 from pathlib import Path
 import markdown as md_parser
-from core import mcp, REPORTS_DIR, WORKSPACE_DIR, ensure_dir, abs_reports
+from core import mcp, AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR, WORKSPACE_DIR, ensure_dir, abs_reports
 
 _NOTO_CSS = """
 <style>
@@ -42,7 +42,7 @@ def create_html_report(
     output_filename: saved under /app/data/reports/ (e.g. 'wine_svm_report.html')
     Returns: absolute path to saved HTML.
     """
-    ensure_dir(REPORTS_DIR)
+    ensure_dir(AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR)
     sections = json.loads(sections_json)
 
     def img_to_base64(path: str) -> str:
@@ -185,7 +185,7 @@ def export_pdf(html_filename: str, output_filename: str) -> str:
     pdf_path = abs_reports(output_filename)
 
     try:
-        ensure_dir(REPORTS_DIR)
+        ensure_dir(AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR)
         raw_html = Path(html_path).read_text(encoding="utf-8")
         patched_html = _inject_noto_font(raw_html)
         HTML(string=patched_html, base_url=str(Path(html_path).parent)).write_pdf(pdf_path)
@@ -340,7 +340,7 @@ def export_pptx(
                 run_num.font.size = Pt(9)
                 run_num.font.color.rgb = GRAY
 
-        ensure_dir(REPORTS_DIR)
+        ensure_dir(AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR)
         out_path = abs_reports(output_filename)
         prs.save(out_path)
         return f"[OK] PPTX saved: {out_path}"
