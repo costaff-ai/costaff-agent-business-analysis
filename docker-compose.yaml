@@ -6,7 +6,7 @@ services:
     environment:
       - PORT=8081
       - PUBLIC_HOST=business-analysis-agent
-      - MCP_BA_URL=http://mcp-business-analysis:8083/mcp
+      - MCP_BA_URL=http://costaff-mcp-business-analysis:8083/mcp
       - WORKSPACE_DIR=/app/data/coding_workspace
       - REPORTS_DIR=/app/data/reports
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
@@ -16,12 +16,12 @@ services:
     ports:
       - "8081:8081"
     depends_on:
-      - mcp-business-analysis
+      - costaff-mcp-business-analysis
     restart: on-failure
     volumes:
       - business_analysis_data:/app/data
 
-  mcp-business-analysis:
+  costaff-mcp-business-analysis:
     build:
       context: ./mcp
     container_name: costaff-mcp-business-analysis
