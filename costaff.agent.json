@@ -1,5 +1,5 @@
 {
-  "name": "business-analysis-agent",
+  "name": "costaff-agent-business-analysis",
   "description": "接收任意數據，自動選擇圖表類型、生成視覺化、撰寫分析敘事，產出 PDF 報告或投影片。",
   "version": "0.1.0",
   "a2a_service": "agent-business-analysis",

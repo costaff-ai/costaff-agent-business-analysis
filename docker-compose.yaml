@@ -5,7 +5,7 @@ services:
     container_name: costaff-agent-business-analysis
     environment:
       - PORT=8081
-      - PUBLIC_HOST=business-analysis-agent
+      - PUBLIC_HOST=costaff-agent-business-analysis
       - MCP_BA_URL=http://costaff-mcp-business-analysis:8083/mcp
       - WORKSPACE_DIR=/app/data/coding_workspace
       - REPORTS_DIR=/app/data/reports

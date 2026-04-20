@@ -161,7 +161,7 @@ CoStaff 會讀取 `costaff.agent.json`，自動建立容器、註冊 Agent，並
 
 ## MCP 擴充
 
-額外的 MCP 可從 **CoStaff Dashboard** 動態指派：`Agents → business-analysis-agent → MCP Extensions → Apply & Restart`，無需重新部署。
+額外的 MCP 可從 **CoStaff Dashboard** 動態指派：`Agents → costaff-agent-business-analysis → MCP Extensions → Apply & Restart`，無需重新部署。
 
 ```json
 {
@@ -178,7 +178,7 @@ CoStaff 會讀取 `costaff.agent.json`，自動建立容器、註冊 Agent，並
 
 ```json
 {
-  "name": "business-analysis-agent",
+  "name": "costaff-agent-business-analysis",
   "version": "0.1.0",
   "description": "接收任意數據，自動選擇圖表類型、生成視覺化、撰寫分析敘事，產出 PDF 報告或投影片。",
   "a2a_service": { "port": 8081, "health_path": "/.well-known/agent.json" },
