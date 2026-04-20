@@ -19,7 +19,7 @@ services:
       - costaff-mcp-business-analysis
     restart: on-failure
     volumes:
-      - business_analysis_data:/app/data
+      - costaff_data:/app/data
 
   costaff-mcp-business-analysis:
     build:
@@ -31,7 +31,7 @@ services:
       - REPORTS_DIR=/app/data/reports
     restart: on-failure
     volumes:
-      - business_analysis_data:/app/data
+      - costaff_data:/app/data
 
 volumes:
-  business_analysis_data:
+  costaff_data:
