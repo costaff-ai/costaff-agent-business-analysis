@@ -26,7 +26,7 @@ def get_connection_params(entry):
 # Own MCP — always connected
 # Try to use the service name derived from costaff naming convention first
 mcp_token = os.getenv("MCP_SECRET_KEY", "REDACTED")
-DEFAULT_MCP_URL = "http://costaff-ext-ba-agent-mcp-business-analysis:8081/mcp"
+DEFAULT_MCP_URL = "http://costaff-ba-agent-mcp-business-analysis:8081/mcp"
 MCP_BA_URL = os.getenv("MCP_BA_URL", DEFAULT_MCP_URL)
 
 mcp_params = StreamableHTTPServerParams(
