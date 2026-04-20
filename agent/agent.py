@@ -24,7 +24,9 @@ def get_connection_params(entry):
     return StreamableHTTPServerParams(url=url, headers=headers)
 
 # Own MCP — always connected
-MCP_BA_URL = os.getenv("MCP_BA_URL", "http://mcp-business-analysis:8083/mcp")
+# Try to use the service name derived from costaff naming convention first
+DEFAULT_MCP_URL = "http://costaff-ext-ba-agent-mcp-business-analysis:8083/mcp"
+MCP_BA_URL = os.getenv("MCP_BA_URL", DEFAULT_MCP_URL)
 tools = [McpToolset(connection_params=StreamableHTTPServerParams(url=MCP_BA_URL))]
 logger.info(f"Business Analysis MCP URL: {MCP_BA_URL}")
 
@@ -48,6 +50,9 @@ if raw_extra:
 model_provider = os.getenv("COSTAFF_AGENT_MODEL_PROVIDER", "gemini").lower()
 model_name = os.getenv("BUSINESS_ANALYSIS_AGENT_MODEL", "gemini-2.5-flash")
 
+preferred_lang = os.getenv("COSTAFF_PREFERRED_LANGUAGE", "Traditional Chinese (繁體中文)")
+instruction = AGENT_INSTRUCTION.replace("{PREFERRED_LANGUAGE}", preferred_lang)
+
 if model_provider == "litellm":
     from google.adk.models.lite_llm import LiteLlm
     selected_model = LiteLlm(
@@ -70,6 +75,6 @@ business_analysis_agent = LlmAgent(
         "writes analytical narrative, and produces a PDF report or PowerPoint (PPTX) slide deck. "
         "Does not perform computation or modelling; focuses solely on presentation and insight."
     ),
-    instruction=AGENT_INSTRUCTION,
+    instruction=instruction,
     tools=tools,
 )

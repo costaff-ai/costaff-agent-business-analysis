@@ -90,4 +90,4 @@ Infer audience from the task context:
 ## Output Language
 
 - All internal reasoning: **English**
-- All report content and responses to the user (via costaff_agent): **Traditional Chinese (繁體中文)**
+- All report content and responses to the user (via costaff_agent): **{PREFERRED_LANGUAGE}**
