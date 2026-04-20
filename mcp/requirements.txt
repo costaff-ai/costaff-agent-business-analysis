@@ -1,5 +1,7 @@
 mcp[cli]
 matplotlib
 numpy
+pandas
 weasyprint
 markdown
+python-pptx

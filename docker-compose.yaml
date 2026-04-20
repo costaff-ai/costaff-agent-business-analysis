@@ -1,34 +1,37 @@
 services:
-  viz-report-agent:
+  business-analysis-agent:
     build:
       context: ./agent
+    container_name: costaff-business-analysis-agent
     environment:
       - PORT=8081
-      - PUBLIC_HOST=viz-report-agent
-      - MCP_VIZ_URL=http://mcp-viz-report:8083/mcp
-      - CODING_WORKSPACE_DIR=/app/data/coding_workspace
+      - PUBLIC_HOST=business-analysis-agent
+      - MCP_BA_URL=http://mcp-business-analysis:8083/mcp
+      - WORKSPACE_DIR=/app/data/coding_workspace
       - REPORTS_DIR=/app/data/reports
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
-      - VIZ_REPORT_AGENT_MODEL=${VIZ_REPORT_AGENT_MODEL:-gemini-2.5-flash}
-      - MATECLAW_AGENT_MODEL_PROVIDER=${MATECLAW_AGENT_MODEL_PROVIDER:-gemini}
+      - BUSINESS_ANALYSIS_AGENT_MODEL=${BUSINESS_ANALYSIS_AGENT_MODEL:-gemini-2.5-flash}
+      - COSTAFF_AGENT_MODEL_PROVIDER=${COSTAFF_AGENT_MODEL_PROVIDER:-gemini}
+      - BUSINESS_ANALYSIS_AGENT_MCP_URLS=${BUSINESS_ANALYSIS_AGENT_MCP_URLS:-}
     ports:
       - "8081:8081"
     depends_on:
-      - mcp-viz-report
+      - mcp-business-analysis
     restart: on-failure
     volumes:
-      - viz_report_data:/app/data
+      - business_analysis_data:/app/data
 
-  mcp-viz-report:
+  mcp-business-analysis:
     build:
       context: ./mcp
+    container_name: costaff-mcp-business-analysis
     environment:
-      - MCP_VIZ_PORT=8083
-      - CODING_WORKSPACE_DIR=/app/data/coding_workspace
+      - MCP_BA_PORT=8083
+      - WORKSPACE_DIR=/app/data/coding_workspace
       - REPORTS_DIR=/app/data/reports
     restart: on-failure
     volumes:
-      - viz_report_data:/app/data
+      - business_analysis_data:/app/data
 
 volumes:
-  viz_report_data:
+  business_analysis_data:

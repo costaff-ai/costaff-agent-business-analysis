@@ -24,12 +24,12 @@ def get_connection_params(entry):
     return StreamableHTTPServerParams(url=url, headers=headers)
 
 # Own MCP — always connected
-MCP_VIZ_URL = os.getenv("MCP_VIZ_URL", "http://mcp-viz-report:8083/mcp")
-tools = [McpToolset(connection_params=StreamableHTTPServerParams(url=MCP_VIZ_URL))]
-logger.info(f"Viz-Report MCP URL: {MCP_VIZ_URL}")
+MCP_BA_URL = os.getenv("MCP_BA_URL", "http://mcp-business-analysis:8083/mcp")
+tools = [McpToolset(connection_params=StreamableHTTPServerParams(url=MCP_BA_URL))]
+logger.info(f"Business Analysis MCP URL: {MCP_BA_URL}")
 
-# Additional MCPs configured via mateclaw dashboard (VIZ_REPORT_AGENT_MCP_URLS)
-raw_extra = os.getenv("VIZ_REPORT_AGENT_MCP_URLS", "")
+# Additional MCPs configured via CoStaff dashboard (BUSINESS_ANALYSIS_AGENT_MCP_URLS)
+raw_extra = os.getenv("BUSINESS_ANALYSIS_AGENT_MCP_URLS", "")
 if raw_extra:
     try:
         extra_config = json.loads(raw_extra)
@@ -43,10 +43,10 @@ if raw_extra:
             except Exception as e:
                 logger.error(f"Failed to load extra MCP '{mcp_name}': {e}")
     except json.JSONDecodeError:
-        logger.error("VIZ_REPORT_AGENT_MCP_URLS is not valid JSON, skipping extra MCPs")
+        logger.error("BUSINESS_ANALYSIS_AGENT_MCP_URLS is not valid JSON, skipping extra MCPs")
 
-model_provider = os.getenv("MATECLAW_AGENT_MODEL_PROVIDER", "gemini").lower()
-model_name = os.getenv("VIZ_REPORT_AGENT_MODEL", "gemini-2.5-flash")
+model_provider = os.getenv("COSTAFF_AGENT_MODEL_PROVIDER", "gemini").lower()
+model_name = os.getenv("BUSINESS_ANALYSIS_AGENT_MODEL", "gemini-2.5-flash")
 
 if model_provider == "litellm":
     from google.adk.models.lite_llm import LiteLlm
@@ -55,19 +55,20 @@ if model_provider == "litellm":
         api_base=os.getenv("LITELLM_API_BASE"),
         api_key=os.getenv("LITELLM_API_KEY"),
     )
-    logger.info("Viz-Report Agent using LiteLLM model provider")
+    logger.info("Business Analysis Agent using LiteLLM model provider")
 else:
     selected_model = model_name
-    logger.info(f"Viz-Report Agent using model: {selected_model}")
+    logger.info(f"Business Analysis Agent using model: {selected_model}")
 
-viz_report_agent = LlmAgent(
-    name="viz_report_agent",
+business_analysis_agent = LlmAgent(
+    name="business_analysis_agent",
     model=selected_model,
     description=(
-        "A data visualization and reporting agent that produces charts and PDF reports from pre-computed results. "
-        "Accepts a workspace file path (JSON/CSV) or structured text content from a previous coding-agent run. "
-        "Outputs a PDF report file path as the final result. "
-        "Does not perform calculations, training, or data processing."
+        "A business intelligence reporting agent that accepts any data source — "
+        "workspace files (JSON/CSV), raw numbers, or structured text — "
+        "autonomously selects appropriate chart types, generates visualisations, "
+        "writes analytical narrative, and produces a PDF report or slide deck. "
+        "Does not perform computation or modelling; focuses solely on presentation and insight."
     ),
     instruction=AGENT_INSTRUCTION,
     tools=tools,

@@ -1,17 +1,19 @@
-# Mateclaw Viz Report Agent
+# CoStaff Business Analysis Agent
 
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Google ADK](https://img.shields.io/badge/Google%20ADK-latest-orange.svg)](https://github.com/google/adk-python)
 [![MCP](https://img.shields.io/badge/MCP-enabled-green.svg)](https://modelcontextprotocol.io/)
 [![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](https://www.docker.com/)
 [![A2A Protocol](https://img.shields.io/badge/A2A-protocol-violet.svg)](https://github.com/google/A2A)
-[![mateclaw.agent.json](https://img.shields.io/badge/mateclaw-compatible-blue.svg)](https://github.com/MateClawAI/mateclaw)
+[![costaff.agent.json](https://img.shields.io/badge/costaff-compatible-blue.svg)](https://github.com/CoStaffAI/costaff)
 
 **繁體中文** | [English](./README.md)
 
-**Mateclaw Viz Report Agent** 是一個基於 **Google ADK** 和 **A2A 協議**構建的資料視覺化與報告生成 Agent。專門負責讀取分析結果（來自檔案路徑或結構化文字），生成圖表（PNG），並產出 HTML 或 PDF 報告，最後將報告路徑回傳給呼叫方 Agent。
+**CoStaff Business Analysis Agent** 是基於 **Google ADK** 與 **A2A 協議**構建的商業智慧報告 Agent。能接受任意來源的資料（workspace 檔案、原始數字或結構化文字），自主選擇最合適的圖表類型、生成視覺化、撰寫分析敘事，最終產出完整的 PDF 報告或 PowerPoint 投影片。
 
-作為 [Mateclaw](https://github.com/MateClawAI/mateclaw) 平台的第一方外部 Agent，也可獨立運行或整合至任何支援 A2A 的系統。
+> *「我把數字變成報告，讓任何人都能理解數據在說什麼。」*
+
+作為 [CoStaff](https://github.com/CoStaffAI/costaff) 平台的第一方外部 Agent，也可獨立運行或整合至任何支援 A2A 的系統。
 
 ---
 
@@ -22,8 +24,9 @@
 - [專案架構](#專案架構)
 - [快速開始](#快速開始)
 - [環境變數](#環境變數)
+- [MCP 工具](#mcp-工具)
 - [MCP 擴充](#mcp-擴充)
-- [mateclaw.agent.json](#mateclawagentjson)
+- [costaff.agent.json](#costaffagentjson)
 - [輸入與輸出](#輸入與輸出)
 - [授權](#授權)
 
@@ -32,55 +35,57 @@
 ## 運作原理
 
 ```
-Mateclaw Agent
+CoStaff Agent
      │
      │  A2A 協議 (/.well-known/agent.json)
      ▼
-Viz Report Agent  ──►  MCP Viz Server  ──►  圖表與報告生成
-                             │
-                             └──►  /app/data/reports/
+Business Analysis Agent  ──►  MCP Business Analysis Server  ──►  圖表與報告
+                                          │
+                                          └──►  /app/data/reports/
 ```
 
-支援兩種輸入模式：
+每次任務的四步驟工作流程：
 
-1. **檔案路徑模式** — 接收來自 `mateclaw-coding-agent` 的輸出檔案路徑（如 `/app/data/coding_workspace/result.json`）並讀取資料
-2. **直接內容模式** — 直接接收來自呼叫方 Agent 的結構化文字內容
-
-Agent 接著會：
-- 透過 matplotlib / plotly 生成 PNG 圖表
-- 組合包含圖表與摘要的 HTML 報告
-- 將所有檔案儲存至 `/app/data/reports/`
-- 將報告路徑回傳給呼叫方
+1. **理解資料** — 從 workspace 檔案（JSON/CSV）載入資料，或直接接受行內輸入
+2. **分析資料** — 執行統計摘要，識別趨勢、異常值與關鍵指標
+3. **自主視覺化** — 自行判斷並生成最合適的圖表，不需要外部指令
+4. **產出報告** — 撰寫分析敘事，匯出 PDF 報告或 PPTX 投影片
 
 ---
 
 ## 功能特色
 
-- **圖表生成** — 透過專用 MCP 工具生成 PNG 圖表（長條圖、折線圖、散點圖、圓餅圖、熱力圖）
-- **HTML 報告生成** — 帶有嵌入式圖表的風格化、自包含 HTML 報告
-- **PDF 匯出** — 依需求將報告轉換為 PDF
+- **自主選擇圖表** — Agent 根據資料型態自動決定最適合的圖表類型，無需手動指定
+- **10+ 圖表類型** — 長條圖、折線圖、面積圖、圓餅圖、散點圖、直方圖、箱型圖、多系列長條/折線、熱力圖、混淆矩陣
+- **資料分析** — 統計摘要（最小值、最大值、平均值、中位數、標準差、趨勢、前後排名）
+- **CSV 支援** — 透過 pandas 直接讀取 CSV 檔案，不只限於 JSON
+- **分析敘事** — 為每張圖表和指標撰寫 1–2 句洞察說明
+- **PDF 匯出** — 附有嵌入式圖表的完整 PDF 報告
+- **PowerPoint 匯出** — 深色主題 PPTX 投影片，可直接拿去開會
+- **受眾語言適配** — 根據情境調整語言深度（技術 vs. 業務受眾）
 - **A2A 相容** — 提供 `/.well-known/agent.json` 健康檢查端點
-- **動態 MCP 支援** — 可透過 Mateclaw Dashboard 在不重新部署的情況下動態新增 MCP Server
+- **動態 MCP 支援** — 可透過 CoStaff Dashboard 在不重新部署的情況下動態新增 MCP Server
 - **多模型支援** — 原生支援 Google Gemini，或任何 LiteLLM 相容的模型提供者
-- **共享 Volume 整合** — 從 `coding_workspace` 讀取輸入，輸出至 `reports/`
-- **mateclaw.agent.json 宣告** — 聲明功能供 Mateclaw 平台自動發現
 
 ---
 
 ## 專案架構
 
 ```
-mateclaw-viz-report-agent/
-├── agent/                    # ADK Agent 定義
-│   ├── agent.py              # LlmAgent，含動態 MCP 載入邏輯
+costaff-business-analysis-agent/
+├── agent/
+│   ├── agent.py                           # LlmAgent，含動態 MCP 載入邏輯
+│   ├── agent_a2a.py                       # A2A Server 入口
 │   ├── utils/
-│   │   └── instructions.py   # 系統提示詞
+│   │   ├── __init__.py
+│   │   └── instructions/
+│   │       └── agent_instruction.md       # Agent 系統提示詞
 │   └── requirements.txt
-├── mcp/                      # MCP Viz Server
-│   ├── server.py             # FastMCP Server，提供圖表與報告工具
+├── mcp/
+│   ├── server.py                          # FastMCP Server — 所有分析與匯出工具
 │   └── requirements.txt
-├── docker-compose.yaml       # 獨立部署設定
-└── mateclaw.agent.json       # Mateclaw 平台宣告文件
+├── docker-compose.yaml
+└── costaff.agent.json
 ```
 
 ---
@@ -95,62 +100,73 @@ mateclaw-viz-report-agent/
 ### 獨立運行
 
 ```bash
-# 克隆
-git clone https://github.com/MateClawAI/mateclaw-viz-report-agent.git
-cd mateclaw-viz-report-agent
+git clone https://github.com/CoStaffAI/costaff-business-analysis-agent.git
+cd costaff-business-analysis-agent
 
-# 設定環境變數
-cp agent/.env.example agent/.env
-# 編輯 agent/.env，填入 API Key
+# 設定 API Key
+echo "GOOGLE_API_KEY=your_key_here" > .env
 
-# 啟動
 docker compose up -d --build
 ```
 
 Agent 將在 `http://localhost:8081` 提供服務。
 
-### 透過 Mateclaw 平台部署
-
-直接從 Mateclaw CLI 部署：
+### 透過 CoStaff 平台部署
 
 ```bash
-mateclaw agent deploy --local /path/to/mateclaw-viz-report-agent
+cst agent deploy --local /path/to/costaff-business-analysis-agent
 ```
 
-Mateclaw 會讀取 `mateclaw.agent.json`，自動建立容器、註冊 Agent，並接入整個生態系。
+CoStaff 會讀取 `costaff.agent.json`，自動建立容器、註冊 Agent，並接入整個生態系。
 
 ---
 
 ## 環境變數
 
 | 變數名稱 | 必填 | 預設值 | 說明 |
-|---------|------|--------|------|
+|---|---|---|---|
 | `GOOGLE_API_KEY` | ✅ | — | Google Gemini API Key |
-| `VIZ_REPORT_AGENT_MODEL` | ❌ | `gemini-2.5-flash` | Gemini 模型名稱 |
-| `MATECLAW_AGENT_MODEL_PROVIDER` | ❌ | `gemini` | `gemini` 或 `litellm` |
+| `BUSINESS_ANALYSIS_AGENT_MODEL` | ❌ | `gemini-2.5-flash` | Gemini 模型名稱 |
+| `COSTAFF_AGENT_MODEL_PROVIDER` | ❌ | `gemini` | `gemini` 或 `litellm` |
 | `LITELLM_MODEL_NAME` | ❌ | — | LiteLLM 模型名稱 |
 | `LITELLM_API_BASE` | ❌ | — | LiteLLM API Base URL |
 | `LITELLM_API_KEY` | ❌ | — | LiteLLM API Key |
-| `MCP_VIZ_URL` | ❌ | `http://mcp-viz-report:8083/sse` | 內部 MCP Viz Server URL |
-| `CODING_WORKSPACE_DIR` | ❌ | `/app/data/coding_workspace` | 輸入目錄（來自 coding agent） |
+| `MCP_BA_URL` | ❌ | `http://mcp-business-analysis:8083/mcp` | 內部 MCP Server URL |
+| `WORKSPACE_DIR` | ❌ | `/app/data/coding_workspace` | 資料輸入目錄 |
 | `REPORTS_DIR` | ❌ | `/app/data/reports` | 報告輸出目錄 |
-| `VIZ_REPORT_AGENT_MCP_URLS` | ❌ | — | 額外 MCP Server 的 JSON 設定（由 Mateclaw Dashboard 管理） |
+| `BUSINESS_ANALYSIS_AGENT_MCP_URLS` | ❌ | — | 額外 MCP Server 的 JSON 設定 |
+
+---
+
+## MCP 工具
+
+內建 MCP Server 提供以下工具：
+
+| 工具 | 說明 |
+|---|---|
+| `list_workspace(subdir)` | 列出資料 workspace 中的檔案 |
+| `read_result(filepath)` | 讀取 JSON 或文字檔案 |
+| `read_csv(filepath)` | 讀取 CSV 檔案 — 回傳欄位名稱、資料形狀、統計摘要與樣本資料 |
+| `analyze_data(data_json)` | 統計摘要：最小值、最大值、平均值、中位數、標準差、趨勢、前後排名 |
+| `generate_chart(...)` | 生成 PNG 圖表（10+ 種類型） |
+| `create_html_report(...)` | 組合含有指標、圖表與敘事的 HTML 報告 |
+| `export_pdf(...)` | 透過 WeasyPrint 將 HTML 報告轉換為 PDF |
+| `export_pptx(...)` | 生成深色主題 PowerPoint 投影片 |
+
+### 支援的圖表類型
+
+`bar` · `line` · `area` · `pie` · `scatter` · `histogram` · `box` · `multi_bar` · `multi_line` · `heatmap` · `confusion_matrix`
 
 ---
 
 ## MCP 擴充
 
-Viz Report Agent 預設連接自身的 **MCP Viz Server** 進行圖表與報告生成。
-
-額外的 MCP 可從 **Mateclaw Dashboard** 動態指派：`Agents → viz-report-agent → MCP Extensions → Apply & Restart`，無需重新部署。
-
-額外 MCP 透過 `VIZ_REPORT_AGENT_MCP_URLS` 環境變數以 JSON dict 格式傳入：
+額外的 MCP 可從 **CoStaff Dashboard** 動態指派：`Agents → business-analysis-agent → MCP Extensions → Apply & Restart`，無需重新部署。
 
 ```json
 {
   "my-data-mcp": {
     "url": "https://my-data-mcp.internal/mcp",
-    "transport": "streamable",
     "headers": { "Authorization": "Bearer ..." }
   }
 }
@@ -158,17 +174,17 @@ Viz Report Agent 預設連接自身的 **MCP Viz Server** 進行圖表與報告�
 
 ---
 
-## mateclaw.agent.json
+## costaff.agent.json
 
 ```json
 {
-  "name": "viz-report-agent",
-  "version": "0.0.1",
-  "description": "讀取分析結果，生成圖表視覺化與 HTML 報告，回傳報告路徑。",
+  "name": "business-analysis-agent",
+  "version": "0.1.0",
+  "description": "接收任意數據，自動選擇圖表類型、生成視覺化、撰寫分析敘事，產出 PDF 報告或投影片。",
   "a2a_service": { "port": 8081, "health_path": "/.well-known/agent.json" },
   "env_required": ["GOOGLE_API_KEY"],
   "mcp_configurable": true,
-  "mcp_env_var": "VIZ_REPORT_AGENT_MCP_URLS"
+  "mcp_env_var": "BUSINESS_ANALYSIS_AGENT_MCP_URLS"
 }
 ```
 
@@ -179,19 +195,20 @@ Viz Report Agent 預設連接自身的 **MCP Viz Server** 進行圖表與報告�
 ### 輸入
 
 | 模式 | 說明 |
-|------|------|
-| 檔案路徑 | 由 `mateclaw-coding-agent` 產出的 `.json` / `.csv` 檔案路徑 |
-| 直接內容 | 直接在任務訊息中傳入的結構化文字、表格或摘要 |
+|---|---|
+| Workspace 檔案 | 共享 workspace 中的 `.json` 或 `.csv` 檔案（如 `costaff-coding-agent` 的輸出） |
+| 行內資料 | 直接在任務訊息中傳入的原始數字、表格或摘要 |
 
 ### 輸出
 
 | 類型 | 位置 | 說明 |
-|------|------|------|
+|---|---|---|
 | PNG 圖表 | `/app/data/reports/` | 各別圖表圖片 |
-| HTML 報告 | `/app/data/reports/` | 嵌入圖表的自包含報告 |
-| PDF 報告 | `/app/data/reports/` | PDF 版本（依需求生成） |
+| HTML 報告 | `/app/data/reports/` | 中間產物（自包含格式） |
+| PDF 報告 | `/app/data/reports/` | 主要交付物 — 每次都會生成 |
+| PPTX 投影片 | `/app/data/reports/` | 投影片 — 明確要求時生成 |
 
-> 本 Agent **不負責**執行程式碼或進行計算。計算工作由 [`mateclaw-coding-agent`](https://github.com/MateClawAI/mateclaw-coding-agent) 負責。
+> 本 Agent **不負責**執行程式碼或進行計算，專注於資料呈現與洞察分析。
 
 ---
 
