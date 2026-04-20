@@ -4,17 +4,21 @@
   "version": "0.1.0",
   "a2a_service": "business-analysis-agent",
   "port": 8081,
-  "public_port": 18101,
-  "env_required": ["GOOGLE_API_KEY"],
-  "env_optional": [
-    "BUSINESS_ANALYSIS_AGENT_MODEL",
+  "env_required": [
+    "GOOGLE_API_KEY"
+  ],
+  "env_optional": [],
+  "env_shared": [
+    "GOOGLE_API_KEY",
     "COSTAFF_AGENT_MODEL_PROVIDER",
     "LITELLM_MODEL_NAME",
     "LITELLM_API_BASE",
-    "LITELLM_API_KEY",
-    "BUSINESS_ANALYSIS_AGENT_MCP_URLS",
-    "COSTAFF_PREFERRED_LANGUAGE"
+    "LITELLM_API_KEY"
   ],
+  "env_auto": [
+    "BUSINESS_ANALYSIS_AGENT_MCP_URLS"
+  ],
+  "model_env_var": "BUSINESS_ANALYSIS_AGENT_MODEL",
   "health_path": "/.well-known/agent.json",
   "mcp_configurable": true,
   "mcp_env_var": "BUSINESS_ANALYSIS_AGENT_MCP_URLS"

@@ -5,7 +5,7 @@
 [![MCP](https://img.shields.io/badge/MCP-enabled-green.svg)](https://modelcontextprotocol.io/)
 [![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](https://www.docker.com/)
 [![A2A Protocol](https://img.shields.io/badge/A2A-protocol-violet.svg)](https://github.com/google/A2A)
-[![costaff.agent.json](https://img.shields.io/badge/costaff-compatible-blue.svg)](https://github.com/CoStaffAI/costaff)
+[![costaff.agent.json](https://img.shields.io/badge/costaff-compatible-blue.svg)](https://github.com/costaff-ai/costaff)
 
 **繁體中文** | [English](./README.md)
 
@@ -13,7 +13,7 @@
 
 > *「我把數字變成報告，讓任何人都能理解數據在說什麼。」*
 
-作為 [CoStaff](https://github.com/CoStaffAI/costaff) 平台的第一方外部 Agent，也可獨立運行或整合至任何支援 A2A 的系統。
+作為 [CoStaff](https://github.com/costaff-ai/costaff) 平台的第一方外部 Agent，也可獨立運行或整合至任何支援 A2A 的系統。
 
 ---
 
@@ -72,7 +72,7 @@ Business Analysis Agent  ──►  MCP Business Analysis Server  ──►  圖
 ## 專案架構
 
 ```
-costaff-business-analysis-agent/
+costaff-agent-business-analysis/
 ├── agent/
 │   ├── agent.py                           # LlmAgent，含動態 MCP 載入邏輯
 │   ├── agent_a2a.py                       # A2A Server 入口
@@ -100,9 +100,9 @@ costaff-business-analysis-agent/
 ### 獨立運行
 
 ```bash
-git clone https://github.com/CoStaffAI/costaff-business-analysis-agent.git
-cd costaff-business-analysis-agent
-
+git clone https://github.com/costaff-ai/costaff-agent-business-analysis.git
+cd costaff-agent-business-analysis
+```
 # 設定 API Key
 echo "GOOGLE_API_KEY=your_key_here" > .env
 
@@ -114,7 +114,7 @@ Agent 將在 `http://localhost:8081` 提供服務。
 ### 透過 CoStaff 平台部署
 
 ```bash
-cst agent deploy --local /path/to/costaff-business-analysis-agent
+cst agent deploy --local /path/to/costaff-agent-business-analysis
 ```
 
 CoStaff 會讀取 `costaff.agent.json`，自動建立容器、註冊 Agent，並接入整個生態系。
@@ -196,7 +196,7 @@ CoStaff 會讀取 `costaff.agent.json`，自動建立容器、註冊 Agent，並
 
 | 模式 | 說明 |
 |---|---|
-| Workspace 檔案 | 共享 workspace 中的 `.json` 或 `.csv` 檔案（如 `costaff-coding-agent` 的輸出） |
+| Workspace 檔案 | 共享 workspace 中的 `.json` 或 `.csv` 檔案（如 `costaff-agent-coding` 的輸出） |
 | 行內資料 | 直接在任務訊息中傳入的原始數字、表格或摘要 |
 
 ### 輸出

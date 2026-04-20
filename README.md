@@ -5,7 +5,7 @@
 [![MCP](https://img.shields.io/badge/MCP-enabled-green.svg)](https://modelcontextprotocol.io/)
 [![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](https://www.docker.com/)
 [![A2A Protocol](https://img.shields.io/badge/A2A-protocol-violet.svg)](https://github.com/google/A2A)
-[![costaff.agent.json](https://img.shields.io/badge/costaff-compatible-blue.svg)](https://github.com/CoStaffAI/costaff)
+[![costaff.agent.json](https://img.shields.io/badge/costaff-compatible-blue.svg)](https://github.com/costaff-ai/costaff)
 
 [繁體中文](./README_zhtw.md) | **English**
 
@@ -13,7 +13,7 @@
 
 > *"I turn numbers into reports that anyone can understand."*
 
-Designed as a first-party external agent for the [CoStaff](https://github.com/CoStaffAI/costaff) platform, it can also run standalone or integrate with any A2A-compatible system.
+Designed as a first-party external agent for the [CoStaff](https://github.com/costaff-ai/costaff) platform, it can also run standalone or integrate with any A2A-compatible system.
 
 ---
 
@@ -72,7 +72,7 @@ The agent follows a four-step workflow for every task:
 ## Architecture
 
 ```
-costaff-business-analysis-agent/
+costaff-agent-business-analysis/
 ├── agent/
 │   ├── agent.py                           # LlmAgent with dynamic MCP loading
 │   ├── agent_a2a.py                       # A2A server entry point
@@ -100,9 +100,9 @@ costaff-business-analysis-agent/
 ### Standalone
 
 ```bash
-git clone https://github.com/CoStaffAI/costaff-business-analysis-agent.git
-cd costaff-business-analysis-agent
-
+git clone https://github.com/costaff-ai/costaff-agent-business-analysis.git
+cd costaff-agent-business-analysis
+```
 # Set your API key
 echo "GOOGLE_API_KEY=your_key_here" > .env
 
@@ -114,7 +114,7 @@ The agent will be available at `http://localhost:8081`.
 ### Via CoStaff Platform
 
 ```bash
-cst agent deploy --local /path/to/costaff-business-analysis-agent
+cst agent deploy --local /path/to/costaff-agent-business-analysis
 ```
 
 CoStaff reads `costaff.agent.json`, builds and starts the containers, registers the agent, and wires it into the ecosystem automatically.
@@ -196,7 +196,7 @@ Additional MCPs can be assigned dynamically from the **CoStaff dashboard** under
 
 | Mode | Description |
 |---|---|
-| Workspace file | `.json` or `.csv` file in the shared workspace (e.g. from `costaff-coding-agent`) |
+| Workspace file | `.json` or `.csv` file in the shared workspace (e.g. from `costaff-agent-coding`) |
 | Inline data | Raw numbers, tables, or summaries passed directly in the task message |
 
 ### Output

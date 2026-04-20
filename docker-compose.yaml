@@ -2,7 +2,7 @@ services:
   business-analysis-agent:
     build:
       context: ./agent
-    container_name: costaff-business-analysis-agent
+    container_name: costaff-agent-business-analysis
     environment:
       - PORT=8081
       - PUBLIC_HOST=business-analysis-agent
