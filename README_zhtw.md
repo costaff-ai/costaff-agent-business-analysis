@@ -37,7 +37,7 @@
 ```
 CoStaff Agent
      │
-     │  A2A 協議 (/.well-known/agent.json)
+     │  A2A 協議 (/.well-known/agent-card.json)
      ▼
 Business Analysis Agent  ──►  MCP Business Analysis Server  ──►  圖表與報告
                                           │
@@ -63,7 +63,7 @@ Business Analysis Agent  ──►  MCP Business Analysis Server  ──►  圖
 - **PDF 匯出** — 附有嵌入式圖表的完整 PDF 報告
 - **PowerPoint 匯出** — 深色主題 PPTX 投影片，可直接拿去開會
 - **受眾語言適配** — 根據情境調整語言深度（技術 vs. 業務受眾）
-- **A2A 相容** — 提供 `/.well-known/agent.json` 健康檢查端點
+- **A2A 相容** — 提供 `/.well-known/agent-card.json` 健康檢查端點
 - **動態 MCP 支援** — 可透過 CoStaff Dashboard 在不重新部署的情況下動態新增 MCP Server
 - **多模型支援** — 原生支援 Google Gemini，或任何 LiteLLM 相容的模型提供者
 
@@ -181,7 +181,7 @@ CoStaff 會讀取 `costaff.agent.json`，自動建立容器、註冊 Agent，並
   "name": "costaff-agent-business-analysis",
   "version": "0.1.0",
   "description": "接收任意數據，自動選擇圖表類型、生成視覺化、撰寫分析敘事，產出 PDF 報告或投影片。",
-  "a2a_service": { "port": 8081, "health_path": "/.well-known/agent.json" },
+  "a2a_service": { "port": 8081, "health_path": "/.well-known/agent-card.json" },
   "env_required": ["GOOGLE_API_KEY"],
   "mcp_configurable": true,
   "mcp_env_var": "BUSINESS_ANALYSIS_AGENT_MCP_URLS"

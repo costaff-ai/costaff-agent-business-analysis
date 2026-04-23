@@ -37,7 +37,7 @@ Designed as a first-party external agent for the [CoStaff](https://github.com/co
 ```
 CoStaff Agent
      │
-     │  A2A Protocol (/.well-known/agent.json)
+     │  A2A Protocol (/.well-known/agent-card.json)
      ▼
 Business Analysis Agent  ──►  MCP Business Analysis Server  ──►  Charts & Reports
                                           │
@@ -63,7 +63,7 @@ The agent follows a four-step workflow for every task:
 - **PDF export** — styled, self-contained PDF reports with embedded charts
 - **PowerPoint export** — dark-themed PPTX slide decks ready for presentations
 - **Audience adaptation** — adjusts language and depth for technical vs. business audiences
-- **A2A-compatible** — exposes `/.well-known/agent.json` health endpoint
+- **A2A-compatible** — exposes `/.well-known/agent-card.json` health endpoint
 - **Dynamic MCP support** — additional MCP servers can be assigned at runtime from the CoStaff dashboard
 - **Multi-model support** — works with Google Gemini natively or any LiteLLM-compatible provider
 
@@ -181,7 +181,7 @@ Additional MCPs can be assigned dynamically from the **CoStaff dashboard** under
   "name": "costaff-agent-business-analysis",
   "version": "0.1.0",
   "description": "接收任意數據，自動選擇圖表類型、生成視覺化、撰寫分析敘事，產出 PDF 報告或投影片。",
-  "a2a_service": { "port": 8081, "health_path": "/.well-known/agent.json" },
+  "a2a_service": { "port": 8081, "health_path": "/.well-known/agent-card.json" },
   "env_required": ["GOOGLE_API_KEY"],
   "mcp_configurable": true,
   "mcp_env_var": "BUSINESS_ANALYSIS_AGENT_MCP_URLS"

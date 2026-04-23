@@ -19,7 +19,7 @@
     "BUSINESS_ANALYSIS_AGENT_MCP_URLS"
   ],
   "model_env_var": "BUSINESS_ANALYSIS_AGENT_MODEL",
-  "health_path": "/.well-known/agent.json",
+  "health_path": "/.well-known/agent-card.json",
   "mcp_configurable": true,
   "mcp_env_var": "BUSINESS_ANALYSIS_AGENT_MCP_URLS"
 }
