@@ -1,7 +1,7 @@
 import os
 import uvicorn
 from google.adk.a2a.utils.agent_to_a2a import to_a2a
-from a2a.types import AgentCard
+from a2a.types import AgentCard, AgentCapabilities
 from agent import business_analysis_agent
 
 PORT = int(os.getenv("PORT", "8081"))
@@ -14,9 +14,10 @@ agent_card = AgentCard(
     url=f"http://{PUBLIC_HOST}:{PORT}",
     description=business_analysis_agent.description,
     version="1.0.0",
-    capabilities={
-        "display_name": "AI 數據分析與報告人員"
-    },
+    capabilities=AgentCapabilities(
+        streaming=False,
+        push_notifications=False
+    ),
     skills=[],
     default_input_modes=["text/plain"],
     default_output_modes=["text/plain"],
