@@ -1,5 +1,7 @@
-google-adk
-a2a-sdk
-uvicorn
+google-adk[a2a]
 python-dotenv
-litellm
+httpx
+pandas
+matplotlib
+seaborn
+reportlab
