@@ -84,4 +84,5 @@ business_analysis_agent = LlmAgent(
     ),
     instruction=instruction,
     tools=tools,
+    sub_agents=[],
 )
