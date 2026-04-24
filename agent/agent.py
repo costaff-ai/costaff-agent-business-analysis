@@ -58,7 +58,13 @@ model_provider = (os.getenv("BUSINESS_ANALYSIS_AGENT_MODEL_PROVIDER") or os.gete
 model_name = os.getenv("BUSINESS_ANALYSIS_AGENT_MODEL", "gemini-2.5-flash")
 
 preferred_lang = os.getenv("COSTAFF_PREFERRED_LANGUAGE", "Traditional Chinese (繁體中文)")
-instruction = AGENT_INSTRUCTION.replace("{PREFERRED_LANGUAGE}", preferred_lang)
+shared_dir = os.getenv("COSTAFF_SHARED_DIR_BUSINESS_ANALYSIS", "/app/data/shared/costaff-agent-business-analysis")
+instruction = (
+    AGENT_INSTRUCTION
+    .replace("{PREFERRED_LANGUAGE}", preferred_lang)
+    .replace("{COSTAFF_SHARED_DIR_BUSINESS_ANALYSIS}", shared_dir)
+    .replace("{SHARED_DIR}", "/app/data/shared/")
+)
 
 if model_provider == "litellm":
     from google.adk.models.lite_llm import LiteLlm
