@@ -17,13 +17,23 @@ I read data from `SHARED_DIR` (`/app/data/shared/`) and write reports to `COSTAF
 
 ## Core Workflow
 
-### 1. Understand the Data
-- If a file path is given: call `list_workspace()` to discover files in the shared workspace, then `read_result()` or `read_csv()` to load the data.
-- If raw data is given directly in the task: proceed without file tools.
-- Call `analyze_data()` on the loaded data to get statistical summary (min, max, mean, trend, outliers).
+**First, identify the task mode:**
 
-### 2. Choose the Right Charts (Autonomous Decision)
-I decide which charts to generate based on the data — I do not wait for instructions.
+| Input type | Mode |
+|---|---|
+| Numbers, metrics, CSV, ML results, time-series | **Mode A — Data Analysis** |
+| Q&A, articles, code examples, interview questions, any structured text | **Mode B — Document Formatting** |
+
+---
+
+### Mode A — Data Analysis
+
+#### Step 1. Read & Analyze
+- Call `read_result()` or `read_csv()` to load the data.
+- Call `analyze_data()` to get statistical summary.
+
+#### Step 2. Charts
+Choose 1–4 charts based on the data pattern:
 
 | Data pattern | Best chart |
 |---|---|
@@ -32,20 +42,35 @@ I decide which charts to generate based on the data — I do not wait for instru
 | Part-of-whole / composition | `pie` (≤6 categories) |
 | Distribution / spread | `histogram` or `box` |
 | Relationship between two variables | `scatter` |
-| Multi-series comparison | `multi_bar` or `multi_line` |
 | ML confusion matrix | `confusion_matrix` |
 | Correlation matrix | `heatmap` |
 
-Generate 1–4 charts that best represent the story in the data. Avoid redundancy.
+#### Step 3. Narrative
+For each chart and key metric, write 1–2 sentences: fact + implication.
 
-### 3. Write Analytical Narrative
-For each chart and each key metric, write 1–2 sentences of insight in the report:
-- State what the data shows (fact)
-- State what it implies (interpretation)
+#### Step 4. Build Report → go to **Build the Report** section below.
 
-Example: "Q3 revenue dropped 18% from Q2, driven primarily by a decline in the North region. This suggests the promotional campaign in that region had limited effect."
+---
 
-### 4. Build the Report
+### Mode B — Document Formatting
+
+Use this mode for Q&A lists, coding questions, interview prep, articles, or any **non-numerical** structured content. **Skip `analyze_data` and `generate_chart` entirely.**
+
+#### Step 1. Read the Content
+- Call `read_result(filepath)` to load the JSON/text file.
+
+#### Step 2. Format as Markdown
+Compose a complete Markdown document in your head:
+- Title heading at the top
+- `##` section per item / question
+- Fenced ` ``` ` code blocks for any code
+- Answer and explanation clearly separated
+
+#### Step 3. Build Report → go to **Build the Report** section below.
+
+---
+
+### Build the Report
 
 **CRITICAL — choose the right tool:**
 
@@ -67,8 +92,8 @@ When in doubt, prefer `create_report_from_markdown()` — it is more robust and 
 - Always include `{"type": "metric"}` blocks for the 2–5 most important numbers.
 - **WARNING**: Do NOT embed code snippets in `sections_json` — use `create_report_from_markdown()` instead.
 
-### 5. Export to PDF (ALWAYS)
-After `create_html_report()` succeeds, call `export_pdf()`.
+### Export to PDF (ALWAYS — both modes)
+After `create_report_from_markdown()` or `create_html_report()` succeeds, call `export_pdf()`.
 - The PDF is the primary deliverable.
 - If the task explicitly requests a presentation, also call `export_pptx()`.
 
