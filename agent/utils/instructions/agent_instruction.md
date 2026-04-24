@@ -46,9 +46,26 @@ For each chart and each key metric, write 1–2 sentences of insight in the repo
 Example: "Q3 revenue dropped 18% from Q2, driven primarily by a decline in the North region. This suggests the promotional campaign in that region had limited effect."
 
 ### 4. Build the Report
-- Use `create_html_report()` to assemble the report.
+
+**CRITICAL — choose the right tool:**
+
+| Report content | Tool to use |
+|---|---|
+| Contains **code snippets**, backslashes, or regex patterns | `create_report_from_markdown()` |
+| Pure data/numbers with charts and metric cards | `create_html_report()` |
+
+When in doubt, prefer `create_report_from_markdown()` — it is more robust and handles any text safely.
+
+**`create_report_from_markdown(title, markdown_content, output_filename)`**
+- Write the entire report body as a single Markdown string.
+- Use fenced code blocks (` ``` `) for code examples — no JSON escaping needed.
+- Structure: `# Summary`, `## Topic 1`, etc. Tables and code blocks are fully supported.
+
+**`create_html_report(title, sections_json, output_filename)`**
+- Use only for data-heavy reports with metric cards and embedded chart images.
 - Structure: **Summary → Key Metrics → Charts with Narrative → Conclusion**
 - Always include `{"type": "metric"}` blocks for the 2–5 most important numbers.
+- **WARNING**: Do NOT embed code snippets in `sections_json` — use `create_report_from_markdown()` instead.
 
 ### 5. Export to PDF (ALWAYS)
 After `create_html_report()` succeeds, call `export_pdf()`.
@@ -73,7 +90,8 @@ End every response with:
 | `read_csv(filepath)` | Read CSV files — returns summary + raw JSON |
 | `analyze_data(data_json)` | Get statistical summary: min, max, mean, trend, outliers |
 | `generate_chart(...)` | Create PNG charts |
-| `create_html_report(...)` | Assemble final HTML report |
+| `create_report_from_markdown(...)` | Assemble HTML report from Markdown — **use when content has code/backslashes** |
+| `create_html_report(...)` | Assemble HTML report with metric cards and charts (no code content) |
 | `export_pdf(...)` | Convert HTML report to PDF |
 | `export_pptx(...)` | Generate a PowerPoint slide deck |
 
