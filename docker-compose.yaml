@@ -7,8 +7,11 @@ services:
       - PORT=8081
       - PUBLIC_HOST=costaff-agent-business-analysis
       - MCP_BA_URL=http://costaff-mcp-business-analysis:8083/mcp
+      # Plan B workspace env vars (injected by CoStaff CLI at deploy time)
       - WORKSPACE_DIR=/app/data
-      - AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR=/app/data/agent-business-analysis
+      - SHARED_DIR=/app/data/shared
+      - COSTAFF_SHARED_DIR_BUSINESS_ANALYSIS=/app/data/shared/costaff-agent-business-analysis
+      - AGENT_WORKSPACE_DIR_BUSINESS_ANALYSIS=/app/data
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - BUSINESS_ANALYSIS_AGENT_MODEL=${BUSINESS_ANALYSIS_AGENT_MODEL:-gemini-2.5-flash}
       - COSTAFF_AGENT_MODEL_PROVIDER=${COSTAFF_AGENT_MODEL_PROVIDER:-gemini}
@@ -18,8 +21,7 @@ services:
     depends_on:
       - costaff-mcp-business-analysis
     restart: on-failure
-    volumes:
-      - costaff_data:/app/data
+    # Note: actual bind mounts are injected by the CoStaff CLI in compose-fragment.yaml
 
   costaff-mcp-business-analysis:
     build:
@@ -28,11 +30,8 @@ services:
     environment:
       - MCP_BA_PORT=8083
       - WORKSPACE_DIR=/app/data
-      - AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR=/app/data/agent-business-analysis
+      - SHARED_DIR=/app/data/shared
+      - COSTAFF_SHARED_DIR_BUSINESS_ANALYSIS=/app/data/shared/costaff-agent-business-analysis
+      - AGENT_WORKSPACE_DIR_BUSINESS_ANALYSIS=/app/data
     restart: on-failure
-    volumes:
-      - costaff_data:/app/data
-
-volumes:
-  costaff_data:
-    name: costaff_data
+    # Note: actual bind mounts are injected by the CoStaff CLI in compose-fragment.yaml

@@ -4,7 +4,7 @@ import traceback
 from datetime import datetime
 from pathlib import Path
 import markdown as md_parser
-from core import mcp, AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR, WORKSPACE_DIR, ensure_dir, abs_reports
+from core import mcp, COSTAFF_SHARED_DIR_BUSINESS_ANALYSIS as AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR, SHARED_DIR as WORKSPACE_DIR, ensure_dir, abs_my_shared as abs_reports
 
 _NOTO_CSS = """
 <style>

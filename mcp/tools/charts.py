@@ -2,7 +2,7 @@ import os
 import json
 import traceback
 from pathlib import Path
-from core import mcp, AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR, ensure_dir
+from core import mcp, COSTAFF_SHARED_DIR_BUSINESS_ANALYSIS as AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR, ensure_dir
 
 PALETTE = ["#4F86C6", "#F4845F", "#6DBE72", "#F7C948", "#9B7FD4", "#4CC9C9", "#E07DB3", "#A0A0A0"]
 

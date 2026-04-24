@@ -1,22 +1,22 @@
 import json
-from core import mcp, WORKSPACE_DIR, abs_workspace
+from core import mcp, SHARED_DIR, abs_shared
 
 
 @mcp.tool()
-def list_workspace(subdir: str = "shared") -> str:
+def list_workspace(subdir: str = "") -> str:
     """
-    List files in the data workspace (default: shared/ subdirectory).
-    Use this to discover result files produced by other agents.
+    List files in the shared workspace (where all agents publish their results).
+    subdir: optional subdirectory within shared/ (e.g. 'costaff-agent-coding')
     """
     from pathlib import Path
-    target = Path(WORKSPACE_DIR) / subdir
+    target = Path(SHARED_DIR) / subdir if subdir else Path(SHARED_DIR)
     if not target.exists():
-        return f"[INFO] Directory '{subdir}' does not exist in workspace."
+        return f"[INFO] Directory '{target}' does not exist."
     files = list(target.rglob("*"))
     if not files:
-        return f"[INFO] No files found in {subdir}/"
+        return f"[INFO] No files found in {target}/"
     return "\n".join(
-        f"{f.relative_to(Path(WORKSPACE_DIR))} ({f.stat().st_size} bytes)"
+        f"{f.relative_to(Path(SHARED_DIR))} ({f.stat().st_size} bytes)"
         for f in sorted(files) if f.is_file()
     )
 
@@ -24,10 +24,10 @@ def list_workspace(subdir: str = "shared") -> str:
 @mcp.tool()
 def read_result(filepath: str) -> str:
     """
-    Read a JSON or text result file from the workspace.
-    filepath: relative path from workspace root (e.g. 'shared/accuracy.json')
+    Read a JSON or text result file from the shared workspace.
+    filepath: relative path from shared/ root (e.g. 'costaff-agent-coding/accuracy.json')
     """
-    abs_path = abs_workspace(filepath)
+    abs_path = abs_shared(filepath)
     try:
         with open(abs_path, "r") as f:
             return f.read()
@@ -40,13 +40,13 @@ def read_result(filepath: str) -> str:
 @mcp.tool()
 def read_csv(filepath: str, max_rows: int = 500) -> str:
     """
-    Read a CSV file from the workspace and return a JSON summary plus sample rows.
-    filepath: relative path from workspace root (e.g. 'shared/sales.csv')
+    Read a CSV file from the shared workspace and return a JSON summary plus sample rows.
+    filepath: relative path from shared/ root (e.g. 'costaff-agent-database/sales.csv')
     max_rows: maximum number of rows to include in the output (default 500)
     Returns: JSON string with keys: columns, shape, dtypes, summary (describe), records (sample rows)
     """
     import pandas as pd
-    abs_path = abs_workspace(filepath)
+    abs_path = abs_shared(filepath)
     try:
         df = pd.read_csv(abs_path)
         result = {
