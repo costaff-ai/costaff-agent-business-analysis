@@ -1,4 +1,6 @@
 import json
+from pathlib import Path
+import pandas as pd
 from core import mcp, SHARED_DIR, abs_shared
 
 
@@ -8,16 +10,15 @@ def list_workspace(subdir: str = "") -> str:
     List files in the shared workspace (where all agents publish their results).
     subdir: optional subdirectory within shared/ (e.g. 'costaff-agent-coding')
     """
-    from pathlib import Path
     target = Path(SHARED_DIR) / subdir if subdir else Path(SHARED_DIR)
     if not target.exists():
         return f"[INFO] Directory '{target}' does not exist."
-    files = list(target.rglob("*"))
+    files = sorted(f for f in target.rglob("*") if f.is_file())
     if not files:
         return f"[INFO] No files found in {target}/"
     return "\n".join(
         f"{f.relative_to(Path(SHARED_DIR))} ({f.stat().st_size} bytes)"
-        for f in sorted(files) if f.is_file()
+        for f in files
     )
 
 
@@ -45,7 +46,6 @@ def read_csv(filepath: str, max_rows: int = 500) -> str:
     max_rows: maximum number of rows to include in the output (default 500)
     Returns: JSON string with keys: columns, shape, dtypes, summary (describe), records (sample rows)
     """
-    import pandas as pd
     abs_path = abs_shared(filepath)
     try:
         df = pd.read_csv(abs_path)

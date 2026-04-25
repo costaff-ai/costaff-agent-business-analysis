@@ -1,5 +1,14 @@
 import json
+import numpy as np
 from core import mcp
+
+
+def _is_numeric(v) -> bool:
+    try:
+        float(v)
+        return True
+    except (TypeError, ValueError):
+        return False
 
 
 @mcp.tool()
@@ -14,14 +23,13 @@ def analyze_data(data_json: str) -> str:
 
     Returns: JSON with min, max, mean, median, std, trend direction, and top/bottom values.
     """
-    import numpy as np
     try:
         data = json.loads(data_json)
         results = {}
 
         def _stats(name: str, values: list) -> None:
             arr = np.array(
-                [v for v in values if v is not None and str(v).replace(".", "").lstrip("-").isdigit()],
+                [v for v in values if _is_numeric(v)],
                 dtype=float,
             )
             if arr.size == 0:

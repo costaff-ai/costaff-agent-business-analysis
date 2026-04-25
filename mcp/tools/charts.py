@@ -1,6 +1,7 @@
 import os
 import json
 import traceback
+import numpy as np
 from pathlib import Path
 from core import mcp, COSTAFF_SHARED_DIR_BUSINESS_ANALYSIS as AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR, ensure_dir
 
@@ -19,6 +20,16 @@ def _setup_matplotlib():
         plt.rcParams["font.family"] = prop.get_name()
     plt.rcParams["axes.unicode_minus"] = False
     return plt
+
+
+_plt_cache = None
+
+
+def _get_plt():
+    global _plt_cache
+    if _plt_cache is None:
+        _plt_cache = _setup_matplotlib()
+    return _plt_cache
 
 
 @mcp.tool()
@@ -49,8 +60,7 @@ def generate_chart(
     output_filename: saved under /app/data/reports/
     Returns: absolute path to saved PNG.
     """
-    import numpy as np
-    plt = _setup_matplotlib()
+    plt = _get_plt()
     ensure_dir(AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR)
 
     data = json.loads(data_json)
