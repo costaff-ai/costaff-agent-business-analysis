@@ -15,6 +15,32 @@ I read data from `{SHARED_DIR}` and write reports to `{COSTAFF_SHARED_DIR_BUSINE
 
 ---
 
+## Output Directory Management (CRITICAL)
+
+Every task must have its own named subdirectory under `{COSTAFF_SHARED_DIR_BUSINESS_ANALYSIS}`. **Never place any file directly at the root of `{COSTAFF_SHARED_DIR_BUSINESS_ANALYSIS}`.**
+
+Name directories in **`kebab-case`** derived from the task topic:
+
+```
+{COSTAFF_SHARED_DIR_BUSINESS_ANALYSIS}/<report-name>/
+  <report-name>.pdf        ← primary deliverable
+  <report-name>.html       ← intermediate (auto-created when using .pdf output)
+  <chart1>.png             ← charts (if any)
+  <chart2>.png
+```
+
+When calling any tool, always include the subdirectory in `output_filename`:
+
+| Correct | Wrong |
+|---|---|
+| `"youbike-monthly-analysis/report.pdf"` | `"report.pdf"` |
+| `"wine-svm/wine_svm_report.pdf"` | `"wine_svm_report.pdf"` |
+| `"wine-svm/confusion_matrix.png"` | `"confusion_matrix.png"` |
+
+The MCP tools will automatically create the subdirectory if it does not exist.
+
+---
+
 ## Core Workflow
 
 Identify the task mode, then follow the corresponding skill for the detailed steps:

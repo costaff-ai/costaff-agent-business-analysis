@@ -15,6 +15,7 @@ def _html_to_pdf(html_content: str, html_path: str, pdf_path: str) -> str:
     except ImportError:
         return "[ERROR] weasyprint is not installed."
     try:
+        ensure_dir(str(Path(html_path).parent))
         Path(html_path).write_text(html_content, encoding="utf-8")
         patched = inject_noto_font(html_content)
         WeasyprintHTML(string=patched, base_url=str(Path(html_path).parent)).write_pdf(pdf_path)
@@ -40,7 +41,6 @@ def create_report_from_markdown(
       - End with '.pdf'  to get a PDF directly (HTML is created automatically as an intermediate step).
     Returns: absolute path to the saved file.
     """
-    ensure_dir(AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR)
     generated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     body_html = md_parser.markdown(
         markdown_content,
@@ -51,11 +51,12 @@ def create_report_from_markdown(
 
     stem = Path(output_filename).stem
     if output_filename.lower().endswith(".pdf"):
-        html_path = abs_reports(f"{stem}.html")
+        html_path = abs_reports(f"{Path(output_filename).parent}/{stem}.html")
         pdf_path  = abs_reports(output_filename)
         return _html_to_pdf(html, html_path, pdf_path)
 
     out_path = abs_reports(output_filename)
+    ensure_dir(str(Path(out_path).parent))
     Path(out_path).write_text(html, encoding="utf-8")
     return f"[OK] Report saved: {out_path}"
 
@@ -86,7 +87,6 @@ def create_html_report(
       - End with '.pdf'  to get a PDF directly (HTML is created automatically as an intermediate step).
     Returns: absolute path to the saved file.
     """
-    ensure_dir(AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR)
     try:
         sections = json.loads(sections_json)
     except json.JSONDecodeError:
@@ -131,11 +131,12 @@ def create_html_report(
 
     stem = Path(output_filename).stem
     if output_filename.lower().endswith(".pdf"):
-        html_path = abs_reports(f"{stem}.html")
+        html_path = abs_reports(f"{Path(output_filename).parent}/{stem}.html")
         pdf_path  = abs_reports(output_filename)
         return _html_to_pdf(html, html_path, pdf_path)
 
     out_path = abs_reports(output_filename)
+    ensure_dir(str(Path(out_path).parent))
     Path(out_path).write_text(html, encoding="utf-8")
     return f"[OK] Report saved: {out_path}"
 
@@ -166,7 +167,7 @@ def export_pdf(html_filename: str, output_filename: str) -> str:
     pdf_path = abs_reports(output_filename)
 
     try:
-        ensure_dir(AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR)
+        ensure_dir(str(Path(pdf_path).parent))
         raw_html = Path(html_path).read_text(encoding="utf-8")
         patched_html = inject_noto_font(raw_html)
         HTML(string=patched_html, base_url=str(Path(html_path).parent)).write_pdf(pdf_path)

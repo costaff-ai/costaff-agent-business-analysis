@@ -225,6 +225,7 @@ def generate_chart(
 
         plt.tight_layout()
         out_path = str(Path(AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR) / output_filename)
+        ensure_dir(str(Path(out_path).parent))
         plt.savefig(out_path, dpi=150, bbox_inches="tight")
         plt.close(fig)
         return f"[OK] Chart saved: {out_path}"
