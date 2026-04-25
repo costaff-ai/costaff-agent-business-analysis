@@ -8,6 +8,45 @@ from core import mcp, COSTAFF_SHARED_DIR_BUSINESS_ANALYSIS as AGENT_BUSINESS_ANA
 PALETTE = ["#4F86C6", "#F4845F", "#6DBE72", "#F7C948", "#9B7FD4", "#4CC9C9", "#E07DB3", "#A0A0A0"]
 
 
+def _auto_xaxis(ax, labels: list, max_ticks: int = 15, rotation_hint: int = -1):
+    """Thin and rotate x-axis labels to prevent overlap.
+
+    Labels are the full list of strings for the x-axis. If there are more than
+    max_ticks, only every N-th label is shown. Rotation is applied automatically
+    based on visible label count and max character length.
+    """
+    import matplotlib.pyplot as _plt
+    n = len(labels)
+    str_labels = [str(l) for l in labels]
+
+    if n > max_ticks:
+        step = max(1, round(n / max_ticks))
+        shown = [str_labels[i] if i % step == 0 else "" for i in range(n)]
+        ax.set_xticks(range(n))
+        ax.set_xticklabels(shown)
+        visible = [l for l in shown if l]
+    else:
+        visible = str_labels
+
+    max_len = max((len(l) for l in visible), default=0)
+    n_vis = len(visible)
+
+    if rotation_hint >= 0:
+        angle = rotation_hint
+    elif n_vis > 10 or max_len > 8:
+        angle = 60
+    elif n_vis > 6 or max_len > 5:
+        angle = 45
+    elif n_vis > 4 or max_len > 3:
+        angle = 30
+    else:
+        angle = 0
+
+    if angle > 0:
+        _plt.setp(ax.get_xticklabels(), rotation=angle, ha="right",
+                  fontsize=max(6, 9 - max(0, n_vis - 8) // 4))
+
+
 def _setup_matplotlib():
     import matplotlib
     matplotlib.use("Agg")
@@ -72,16 +111,31 @@ def generate_chart(
     try:
         if chart_type == "bar":
             labels, values = data["labels"], data["values"]
-            bars = ax.bar(labels, values, color=PALETTE[0], edgecolor="white", linewidth=0.5)
+            x_pos = range(len(labels))
+            bars = ax.bar(x_pos, values, color=PALETTE[0], edgecolor="white", linewidth=0.5)
             ax.bar_label(bars, fmt="%.3g", padding=3, fontsize=9)
             ax.set_ylim(0, max(values) * 1.18)
+            ax.set_xticks(x_pos)
+            ax.set_xticklabels(labels)
+            _auto_xaxis(ax, labels)
 
         elif chart_type == "line":
-            ax.plot(data["x"], data["y"], marker="o", color=PALETTE[0], linewidth=2)
+            x_data, y_data = data["x"], data["y"]
+            x_pos = range(len(x_data))
+            marker = "o" if len(x_data) <= 30 else ""
+            ax.plot(x_pos, y_data, marker=marker, color=PALETTE[0], linewidth=2)
+            ax.set_xticks(x_pos)
+            ax.set_xticklabels(x_data)
+            _auto_xaxis(ax, x_data)
 
         elif chart_type == "area":
-            ax.plot(data["x"], data["y"], color=PALETTE[0], linewidth=2)
-            ax.fill_between(data["x"], data["y"], alpha=0.25, color=PALETTE[0])
+            x_data, y_data = data["x"], data["y"]
+            x_pos = range(len(x_data))
+            ax.plot(x_pos, y_data, color=PALETTE[0], linewidth=2)
+            ax.fill_between(x_pos, y_data, alpha=0.25, color=PALETTE[0])
+            ax.set_xticks(x_pos)
+            ax.set_xticklabels(x_data)
+            _auto_xaxis(ax, x_data)
 
         elif chart_type == "pie":
             ax.pie(data["values"], labels=data["labels"], autopct="%1.1f%%",
@@ -123,12 +177,19 @@ def generate_chart(
             ax.set_xticks(x)
             ax.set_xticklabels(labels)
             ax.legend(fontsize=9)
+            _auto_xaxis(ax, labels)
 
         elif chart_type == "multi_line":
+            x_data = data["x"]
+            x_pos = range(len(x_data))
             for i, (name, values) in enumerate(data["series"].items()):
-                ax.plot(data["x"], values, marker="o", label=name,
+                marker = "o" if len(x_data) <= 30 else ""
+                ax.plot(x_pos, values, marker=marker, label=name,
                         color=PALETTE[i % len(PALETTE)], linewidth=2)
+            ax.set_xticks(x_pos)
+            ax.set_xticklabels(x_data)
             ax.legend(fontsize=9)
+            _auto_xaxis(ax, x_data)
 
         elif chart_type in ("heatmap", "confusion_matrix"):
             matrix = np.array(data["matrix"])
