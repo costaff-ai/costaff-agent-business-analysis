@@ -1,0 +1,181 @@
+import json
+import pytest
+from pathlib import Path
+from tools.reports import (
+    create_report_from_markdown,
+    create_html_report,
+    export_pdf,
+    export_pptx,
+)
+
+try:
+    import weasyprint
+    HAS_WEASYPRINT = True
+except ImportError:
+    HAS_WEASYPRINT = False
+
+try:
+    import pptx  # noqa: F401
+    HAS_PPTX = True
+except ImportError:
+    HAS_PPTX = False
+
+
+# ── create_report_from_markdown ────────────────────────────────────────────────
+
+def test_markdown_report_creates_file(agent_dir):
+    result = create_report_from_markdown(
+        title="Test Report",
+        markdown_content="## Section\n\nHello world.",
+        output_filename="tr_basic.html",
+    )
+    assert result.startswith("[OK]")
+    assert (agent_dir / "tr_basic.html").exists()
+
+
+def test_markdown_report_contains_title(agent_dir):
+    create_report_from_markdown("My Title", "## Body\n\nContent.", "tr_title.html")
+    content = (agent_dir / "tr_title.html").read_text()
+    assert "My Title" in content
+
+
+def test_markdown_report_renders_code_blocks(agent_dir):
+    md = "## Code\n\n```python\ndef hello():\n    return 42\n```"
+    create_report_from_markdown("Code Report", md, "tr_code.html")
+    content = (agent_dir / "tr_code.html").read_text()
+    assert "<code" in content
+
+
+def test_markdown_report_renders_tables(agent_dir):
+    md = "| Col A | Col B |\n|---|---|\n| 1 | 2 |\n| 3 | 4 |"
+    create_report_from_markdown("Table Report", md, "tr_table.html")
+    content = (agent_dir / "tr_table.html").read_text()
+    assert "<table" in content
+
+
+def test_markdown_report_result_contains_path(agent_dir):
+    result = create_report_from_markdown("Path Check", "Hello.", "tr_pathcheck.html")
+    assert "tr_pathcheck.html" in result
+
+
+# ── create_html_report ─────────────────────────────────────────────────────────
+
+def test_html_report_creates_file(agent_dir):
+    sections = json.dumps([{"type": "heading", "text": "Summary"}])
+    result = create_html_report("HTML Test", sections, "tr_html.html")
+    assert result.startswith("[OK]")
+    assert (agent_dir / "tr_html.html").exists()
+
+
+def test_html_report_heading_section(agent_dir):
+    sections = json.dumps([{"type": "heading", "text": "Results Summary"}])
+    create_html_report("Heading Test", sections, "tr_heading.html")
+    content = (agent_dir / "tr_heading.html").read_text()
+    assert "Results Summary" in content
+
+
+def test_html_report_metric_section(agent_dir):
+    sections = json.dumps([{"type": "metric", "label": "Accuracy", "value": "97.22%"}])
+    create_html_report("Metric Test", sections, "tr_metric.html")
+    content = (agent_dir / "tr_metric.html").read_text()
+    assert "97.22%" in content
+    assert "Accuracy" in content
+
+
+def test_html_report_text_section(agent_dir):
+    sections = json.dumps([{"type": "text", "text": "The model performed well."}])
+    create_html_report("Text Test", sections, "tr_text.html")
+    content = (agent_dir / "tr_text.html").read_text()
+    assert "model performed well" in content
+
+
+def test_html_report_divider_section(agent_dir):
+    sections = json.dumps([{"type": "divider"}])
+    create_html_report("Divider Test", sections, "tr_divider.html")
+    content = (agent_dir / "tr_divider.html").read_text()
+    assert "divider" in content
+
+
+def test_html_report_missing_image_shows_placeholder(agent_dir):
+    sections = json.dumps([
+        {"type": "image", "path": "/nonexistent/chart.png", "caption": "Missing Chart"}
+    ])
+    create_html_report("Image Test", sections, "tr_img.html")
+    content = (agent_dir / "tr_img.html").read_text()
+    assert "Image not found" in content
+
+
+def test_html_report_multiple_sections(agent_dir):
+    sections = json.dumps([
+        {"type": "heading", "text": "Overview"},
+        {"type": "metric", "label": "F1 Score", "value": "0.96"},
+        {"type": "text", "text": "Strong performance across all classes."},
+        {"type": "divider"},
+        {"type": "metric", "label": "AUC", "value": "0.99"},
+    ])
+    result = create_html_report("Multi Section", sections, "tr_multi.html")
+    assert result.startswith("[OK]")
+    content = (agent_dir / "tr_multi.html").read_text()
+    assert "F1 Score" in content
+    assert "AUC" in content
+
+
+# ── export_pdf ─────────────────────────────────────────────────────────────────
+
+def test_export_pdf_html_not_found(agent_dir):
+    result = export_pdf("__nonexistent__.html", "out.pdf")
+    assert result.startswith("[ERROR]")
+    # when weasyprint is installed: "HTML file not found: ..."
+    # when weasyprint is absent: "weasyprint is not installed"
+    # either way we expect an [ERROR] return
+
+
+@pytest.mark.skipif(not HAS_WEASYPRINT, reason="weasyprint not installed")
+def test_export_pdf_creates_file(agent_dir):
+    create_report_from_markdown("PDF Test", "## Section\n\nContent.", "tr_pdf_src.html")
+    result = export_pdf("tr_pdf_src.html", "tr_output.pdf")
+    assert result.startswith("[OK]")
+    assert (agent_dir / "tr_output.pdf").exists()
+
+
+@pytest.mark.skipif(not HAS_WEASYPRINT, reason="weasyprint not installed")
+def test_export_pdf_result_contains_path(agent_dir):
+    create_report_from_markdown("PDF Path", "Hello.", "tr_pdf2.html")
+    result = export_pdf("tr_pdf2.html", "tr_output2.pdf")
+    assert "tr_output2.pdf" in result
+
+
+# ── export_pptx ────────────────────────────────────────────────────────────────
+
+@pytest.mark.skipif(not HAS_PPTX, reason="python-pptx not installed")
+def test_export_pptx_creates_file(agent_dir):
+    slides = json.dumps([
+        {"type": "title", "title": "Q3 Report", "subtitle": "CoStaff BI"},
+        {"type": "content", "title": "Key Metrics", "bullets": ["Accuracy: 97%", "F1: 0.96"]},
+    ])
+    result = export_pptx("Test Deck", slides, "tr_deck.pptx")
+    assert result.startswith("[OK]")
+    assert (agent_dir / "tr_deck.pptx").exists()
+
+
+@pytest.mark.skipif(not HAS_PPTX, reason="python-pptx not installed")
+def test_export_pptx_title_slide(agent_dir):
+    slides = json.dumps([{"type": "title", "title": "My Deck", "subtitle": "Subtitle"}])
+    result = export_pptx("Title Only", slides, "tr_title_only.pptx")
+    assert result.startswith("[OK]")
+
+
+@pytest.mark.skipif(not HAS_PPTX, reason="python-pptx not installed")
+def test_export_pptx_content_slide(agent_dir):
+    slides = json.dumps([
+        {"type": "content", "title": "Findings", "bullets": ["Point A", "Point B", "Point C"]},
+    ])
+    result = export_pptx("Content Deck", slides, "tr_content.pptx")
+    assert result.startswith("[OK]")
+
+
+@pytest.mark.skipif(not HAS_PPTX, reason="python-pptx not installed")
+def test_export_pptx_result_contains_path(agent_dir):
+    slides = json.dumps([{"type": "title", "title": "Path Check"}])
+    result = export_pptx("Path Deck", slides, "tr_path_deck.pptx")
+    assert "tr_path_deck.pptx" in result

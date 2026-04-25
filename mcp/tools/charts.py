@@ -63,7 +63,10 @@ def generate_chart(
     plt = _get_plt()
     ensure_dir(AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR)
 
-    data = json.loads(data_json)
+    try:
+        data = json.loads(data_json)
+    except Exception as e:
+        return f"[ERROR] Invalid JSON input: {e}"
     fig, ax = plt.subplots(figsize=(9, 6))
 
     try:
@@ -101,7 +104,7 @@ def generate_chart(
             groups = data["groups"]
             ax.boxplot(
                 list(groups.values()),
-                labels=list(groups.keys()),
+                tick_labels=list(groups.keys()),
                 patch_artist=True,
                 boxprops=dict(facecolor=PALETTE[0], alpha=0.6),
                 medianprops=dict(color="#1e293b", linewidth=2),
