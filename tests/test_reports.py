@@ -105,6 +105,27 @@ def test_html_report_missing_image_shows_placeholder(agent_dir):
     assert "Image not found" in content
 
 
+def test_html_report_image_embedded_as_base64(agent_dir):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    # Generate a real PNG so img_to_base64 runs its read path
+    png_path = agent_dir / "tr_real_chart.png"
+    fig, ax = plt.subplots(figsize=(2, 2))
+    ax.bar(["A", "B"], [1, 2])
+    fig.savefig(str(png_path), dpi=50)
+    plt.close(fig)
+
+    sections = json.dumps([
+        {"type": "image", "path": str(png_path), "caption": "Real Chart"}
+    ])
+    create_html_report("Embedded Image", sections, "tr_img_b64.html")
+    content = (agent_dir / "tr_img_b64.html").read_text()
+    assert "data:image/png;base64," in content
+    assert "Real Chart" in content
+
+
 def test_html_report_multiple_sections(agent_dir):
     sections = json.dumps([
         {"type": "heading", "text": "Overview"},
@@ -179,3 +200,23 @@ def test_export_pptx_result_contains_path(agent_dir):
     slides = json.dumps([{"type": "title", "title": "Path Check"}])
     result = export_pptx("Path Deck", slides, "tr_path_deck.pptx")
     assert "tr_path_deck.pptx" in result
+
+
+@pytest.mark.skipif(not HAS_PPTX, reason="python-pptx not installed")
+def test_export_pptx_image_slide(agent_dir):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    png_path = agent_dir / "tr_pptx_chart.png"
+    fig, ax = plt.subplots(figsize=(2, 2))
+    ax.plot([1, 2, 3], [3, 1, 2])
+    fig.savefig(str(png_path), dpi=50)
+    plt.close(fig)
+
+    slides = json.dumps([
+        {"type": "image", "title": "Revenue Trend", "image_path": str(png_path), "note": "Strong Q3."},
+    ])
+    result = export_pptx("Image Deck", slides, "tr_img_deck.pptx")
+    assert result.startswith("[OK]")
+    assert (agent_dir / "tr_img_deck.pptx").exists()
