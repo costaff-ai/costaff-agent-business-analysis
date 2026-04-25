@@ -12,11 +12,15 @@ description: >
 
 ### Step 1. Read the Data
 
+**CRITICAL — exact tool names (do NOT invent names):**
+
 ```
-Tool: read_csv(filepath)        — for CSV files
-Tool: read_result(filepath)     — for JSON / text result files
+Tool: read_csv(filepath)        — for CSV files (.csv)
+Tool: read_result(filepath)     — for JSON / text result files (.json, .txt, .md)
 Tool: list_workspace(subdir)    — to discover available files first
 ```
+
+`read_file` does **NOT** exist. Use `read_result` for any non-CSV file.
 
 `filepath` is relative to `/app/data/shared/` (e.g. `costaff-agent-coding/results.json`).
 
