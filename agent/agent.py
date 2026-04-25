@@ -8,7 +8,10 @@ logger = logging.getLogger(__name__)
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+from pathlib import Path
 from google.adk.agents import LlmAgent
+from google.adk.skills import load_skill_from_dir
+from google.adk.tools import skill_toolset
 from google.adk.tools.mcp_tool import McpToolset
 from google.adk.tools.mcp_tool.mcp_session_manager import StreamableHTTPServerParams
 from utils import AGENT_INSTRUCTION
@@ -34,7 +37,15 @@ mcp_params = StreamableHTTPServerParams(
     headers={"Authorization": f"Bearer {mcp_token}"}
 )
 
-tools = [McpToolset(connection_params=mcp_params)]
+_skills_dir = Path(__file__).parent / "utils" / "skills"
+_skills = [
+    load_skill_from_dir(d)
+    for d in sorted(_skills_dir.iterdir())
+    if d.is_dir() and (d / "SKILL.md").exists()
+] if _skills_dir.exists() else []
+logger.info(f"Loaded {len(_skills)} skill(s)")
+
+tools = [McpToolset(connection_params=mcp_params), skill_toolset.SkillToolset(skills=_skills)]
 logger.info(f"Business Analysis MCP URL: {MCP_BA_URL}")
 
 # Additional MCPs configured via CoStaff dashboard (BUSINESS_ANALYSIS_AGENT_MCP_URLS)
