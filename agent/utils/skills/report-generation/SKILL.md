@@ -1,141 +1,149 @@
 ---
 name: report-generation
 description: >
-  Generate business reports and presentation decks: HTML reports, PDF export,
-  PowerPoint (PPTX) slide decks, and executive summaries. Use when asked to
-  create a report, generate a PDF, build a slide deck, or produce a deliverable
-  document from analysis results or charts.
+  Mode B — Document Formatting, and the final report/export step for all modes.
+  Use for Mode B when input is Q&A, articles, code examples, or structured text.
+  Also handles create_report_from_markdown, create_html_report, export_pdf, and
+  export_pptx for Mode A and Mode C after analysis is complete.
 ---
 
 # Report Generation Skill
 
-## Required Packages
+All reports are produced by calling MCP tools — do NOT write Python code or
+import libraries directly.
+
+---
+
+## Mode B Workflow — Document Formatting
+
+Use when the input is Q&A, articles, interview questions, code examples, or
+any structured non-numerical text.
+
+### Step 1. Read the Content
+
 ```
-pip_install("reportlab weasyprint python-pptx jinja2")
+Tool: read_result(filepath)
 ```
 
-## 1. HTML Report Template
+`filepath` is relative to `/app/data/shared/`.
 
+### Step 2. Format as Markdown
+
+Compose the full report body as a Markdown string:
+- Title heading at the top
+- `##` section per item / question
+- Fenced ` ``` ` code blocks for any code
+- Answer and explanation clearly separated
+
+### Step 3. Build the Report → see **Building the Report** below.
+
+---
+
+## Building the Report (all modes)
+
+### Choose the right tool
+
+| Report content | Tool |
+|---|---|
+| Contains **code snippets**, backslashes, or regex patterns | `create_report_from_markdown()` |
+| Pure data/numbers with metric cards and chart images | `create_html_report()` |
+
+When in doubt, use `create_report_from_markdown()` — it handles any content safely.
+
+---
+
+### create_report_from_markdown
+
+```
+Tool: create_report_from_markdown
+Args:
+  title           — report title
+  markdown_content — full body as a Markdown string
+  output_filename  — e.g. "python_questions.html"
+```
+
+Markdown structure example:
+```markdown
+## Introduction
+...
+
+## Section 1
+### Sub-topic
+Content with `inline code` and:
 ```python
-from jinja2 import Template
-from pathlib import Path
-
-TEMPLATE = """
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-  <meta charset="UTF-8">
-  <style>
-    body { font-family: 'Helvetica Neue', sans-serif; margin: 40px; color: #333; }
-    h1   { color: #1a73e8; border-bottom: 2px solid #1a73e8; padding-bottom: 8px; }
-    h2   { color: #444; margin-top: 32px; }
-    .metric { display: inline-block; background: #f0f4ff; border-radius: 8px;
-              padding: 16px 24px; margin: 8px; text-align: center; }
-    .metric .value { font-size: 28px; font-weight: bold; color: #1a73e8; }
-    .metric .label { font-size: 12px; color: #666; margin-top: 4px; }
-    img { max-width: 100%; border-radius: 4px; margin: 16px 0; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
-    th { background: #f5f5f5; }
-  </style>
-</head>
-<body>
-  <h1>{{ title }}</h1>
-  <p>{{ period }} | 產生時間：{{ generated_at }}</p>
-
-  <h2>關鍵指標</h2>
-  {% for m in metrics %}
-  <div class="metric">
-    <div class="value">{{ m.value }}</div>
-    <div class="label">{{ m.label }}</div>
-  </div>
-  {% endfor %}
-
-  <h2>分析摘要</h2>
-  <p>{{ summary }}</p>
-
-  {% for chart in charts %}
-  <h2>{{ chart.title }}</h2>
-  <img src="{{ chart.path }}" alt="{{ chart.title }}">
-  {% endfor %}
-</body>
-</html>
-"""
-
-def render_html_report(title, period, metrics, summary, charts, output_path):
-    """Render an HTML report from structured data."""
-    from datetime import datetime
-    html = Template(TEMPLATE).render(
-        title=title,
-        period=period,
-        generated_at=datetime.now().strftime("%Y-%m-%d %H:%M"),
-        metrics=metrics,
-        summary=summary,
-        charts=charts,
-    )
-    Path(output_path).write_text(html, encoding="utf-8")
-    print(f"HTML report saved: {output_path}")
+def example():
+    return 42
 ```
 
-## 2. PDF from HTML
-
-```python
-# Option A: weasyprint (better CSS support)
-from weasyprint import HTML
-HTML(filename="report.html").write_pdf("report.pdf")
-
-# Option B: reportlab (more control, no CSS)
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Image
-from reportlab.lib.styles import getSampleStyleSheet
-
-doc = SimpleDocTemplate("report.pdf", pagesize=A4)
-styles = getSampleStyleSheet()
-story = [
-    Paragraph("Report Title", styles["Title"]),
-    Paragraph("Summary text here...", styles["Normal"]),
-    Image("chart.png", width=400, height=280),
-]
-doc.build(story)
+## Summary
+- Point 1
+- Point 2
 ```
 
-## 3. PowerPoint Slide Deck
+---
 
-```python
-from pptx import Presentation
-from pptx.util import Inches, Pt
-from pptx.dml.color import RGBColor
+### create_html_report (data-heavy reports only)
 
-prs = Presentation()
-slide_layout = prs.slide_layouts[1]  # Title and Content
-
-# Title slide
-slide = prs.slides.add_slide(prs.slide_layouts[0])
-slide.shapes.title.text = "業務分析報告"
-slide.placeholders[1].text = "2024 Q1"
-
-# Content slide
-slide = prs.slides.add_slide(slide_layout)
-slide.shapes.title.text = "關鍵指標"
-tf = slide.placeholders[1].text_frame
-tf.text = f"總營收：$2.3M (+18.4%)"
-tf.add_paragraph().text = "最大類別：電子產品（42%）"
-tf.add_paragraph().text = "異常月份：3月（-22%）"
-
-# Chart slide
-slide = prs.slides.add_slide(slide_layout)
-slide.shapes.title.text = "銷售趨勢"
-slide.shapes.add_picture("chart.png", Inches(1), Inches(1.5), Inches(8), Inches(5))
-
-prs.save("report.pptx")
-print("PPTX saved: report.pptx")
+```
+Tool: create_html_report
+Args:
+  title        — report title
+  sections_json — JSON array:
+    [
+      {"type": "heading", "text": "Results Summary"},
+      {"type": "metric",  "label": "Accuracy",  "value": "97.2%"},
+      {"type": "metric",  "label": "F1 Score",  "value": "0.96"},
+      {"type": "text",    "text": "The model achieved..."},
+      {"type": "image",   "path": "/app/data/shared/costaff-agent-business-analysis/chart.png",
+                          "caption": "Confusion Matrix"},
+      {"type": "divider"}
+    ]
+  output_filename — e.g. "sales_report.html"
 ```
 
-## 4. Output Checklist
+**WARNING**: Do NOT put code snippets in `sections_json`. Use `create_report_from_markdown()` instead.
+
+---
+
+### export_pdf (ALWAYS — every mode)
+
+After `create_report_from_markdown()` or `create_html_report()` returns `[OK]`:
+
+```
+Tool: export_pdf
+Args:
+  html_filename   — filename only, e.g. "python_questions.html"
+  output_filename — e.g. "python_questions.pdf"
+```
+
+Copy the **exact return string** into your response as the PDF path.
+
+---
+
+### export_pptx (only when explicitly requested)
+
+```
+Tool: export_pptx
+Args:
+  title       — deck title
+  slides_json — JSON array:
+    [
+      {"type": "title",   "title": "Q3 Sales Report", "subtitle": "CoStaff BI"},
+      {"type": "content", "title": "Key Metrics",
+                          "bullets": ["Revenue: $2.3M", "Growth: +18.4%"]},
+      {"type": "image",   "title": "Revenue Trend",
+                          "image_path": "/app/data/shared/costaff-agent-business-analysis/trend.png",
+                          "note": "Strong Q3 recovery."}
+    ]
+  output_filename — e.g. "q3_report.pptx"
+```
+
+---
+
+## Output Checklist
 
 Before reporting as complete:
-- [ ] Charts saved as `.png` files in `outputs/`
-- [ ] `summary.json` with key metrics
-- [ ] HTML report generated and opens correctly in browser
-- [ ] PDF exported from HTML
-- [ ] All files placed under `{COSTAFF_SHARED_DIR_BUSINESS_ANALYSIS}/`
+- [ ] `create_report_from_markdown()` or `create_html_report()` returned `[OK]`
+- [ ] `export_pdf()` called and returned `[OK] PDF saved: <path>`
+- [ ] Report the **exact return string** from `export_pdf()` — never construct your own path
+- [ ] All output files are under `/app/data/shared/costaff-agent-business-analysis/`
