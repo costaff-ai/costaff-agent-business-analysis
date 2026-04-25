@@ -89,3 +89,12 @@
 .report-body tr:nth-child(even) td {
   background: #f8fafc;
 }
+
+.report-body img {
+  max-width: 160mm;
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0.75rem auto;
+  border: 1pt solid var(--border);
+}

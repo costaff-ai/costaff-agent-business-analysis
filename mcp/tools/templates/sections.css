@@ -121,10 +121,15 @@
 .chart-figure {
   margin: 1.5rem 0;
   text-align: center;
+  width: 100%;
 }
 
 .chart-figure img {
-  max-width: 100%;
+  max-width: 160mm;
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
   border: 1pt solid var(--border);
 }
 
