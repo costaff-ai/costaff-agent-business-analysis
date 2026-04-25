@@ -1,9 +1,41 @@
 :root {
-  --blue: #4F86C6;
-  --dark: #1e293b;
-  --light: #f8fafc;
-  --border: #e2e8f0;
+  --navy:   #1e3a5f;   /* 正式藏藍：標題、封面 */
+  --blue:   #4F86C6;   /* 強調藍：表格表頭、圖表 */
+  --dark:   #1a1a1a;   /* 本文色（接近黑） */
+  --light:  #ffffff;
+  --border: #d1d5db;
 }
+
+/* ── Print / PDF layout ─────────────────────────────── */
+
+@page {
+  size: A4;
+  margin: 3cm 2cm 2.5cm 3cm;
+
+  @top-center {
+    content: string(report-title);
+    font-family: "Noto Sans CJK TC", "Noto Sans CJK SC", "Noto Sans", sans-serif;
+    font-size: 9pt;
+    color: #64748b;
+    border-bottom: 0.5pt solid #cbd5e1;
+    padding-bottom: 4pt;
+  }
+
+  @bottom-right {
+    content: "第 " counter(page) " 頁，共 " counter(pages) " 頁";
+    font-family: "Noto Sans CJK TC", "Noto Sans CJK SC", "Noto Sans", sans-serif;
+    font-size: 9pt;
+    color: #64748b;
+  }
+}
+
+/* 封面頁不顯示頁首、頁碼 */
+@page cover {
+  @top-center  { content: none; }
+  @bottom-right { content: none; }
+}
+
+/* ── Base reset ─────────────────────────────────────── */
 
 * {
   box-sizing: border-box;
@@ -13,41 +45,103 @@
 
 body {
   font-family: "Noto Sans CJK TC", "Noto Sans CJK SC", "Noto Sans", sans-serif;
-  background: var(--light);
+  background: #ffffff;
   color: var(--dark);
-  padding: 2rem;
+  font-size: 12pt;
+  line-height: 1.5;
 }
 
-.report-container {
-  max-width: 900px;
-  margin: 0 auto;
+/* 螢幕預覽模式：加外框與背景 */
+@media screen {
+  body {
+    background: #f8fafc;
+    padding: 2rem;
+  }
+  .report-container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #ffffff;
+    padding: 2rem;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+    border-radius: 0.5rem;
+  }
 }
 
-.report-header {
-  background: var(--blue);
-  color: white;
-  border-radius: 1rem;
-  padding: 2.5rem;
-  margin-bottom: 2rem;
+/* ── Running header source（WeasyPrint string-set）─── */
+
+.running-title {
+  position: absolute;
+  visibility: hidden;
+  string-set: report-title content();
 }
 
-.report-header h1 {
-  font-size: 2rem;
+/* ── Cover page ─────────────────────────────────────── */
+
+.cover-page {
+  page: cover;
+  page-break-after: always;
+  padding: 1cm 0;
+}
+
+.cover-top {
+  text-align: right;
+  margin-bottom: 6cm;
+}
+
+.cover-confidentiality {
+  font-size: 10pt;
+  font-weight: 700;
+  color: #b91c1c;
+  letter-spacing: 0.08em;
+  border: 1.5pt solid #b91c1c;
+  padding: 2pt 10pt;
+  display: inline-block;
+}
+
+.cover-confidentiality:empty {
+  display: none;
+}
+
+.cover-center {
+  text-align: center;
+}
+
+.cover-rule {
+  width: 60mm;
+  height: 2pt;
+  background: var(--navy);
+  margin: 0.8cm auto;
+}
+
+.cover-title {
+  font-size: 22pt;
   font-weight: 800;
-  letter-spacing: -0.5px;
+  color: var(--navy);
+  line-height: 1.35;
+  letter-spacing: -0.5pt;
 }
 
-.report-header .meta {
-  font-size: 0.8rem;
-  opacity: 0.8;
-  margin-top: 0.5rem;
+.cover-bottom {
+  margin-top: 6cm;
+  border-top: 1pt solid var(--border);
+  padding-top: 0.5cm;
+  font-size: 10pt;
+  color: #475569;
+  display: flex;
+  justify-content: space-between;
 }
+
+/* ── Report footer ──────────────────────────────────── */
 
 .report-footer {
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 9pt;
   color: #94a3b8;
   margin-top: 3rem;
   padding-top: 1.5rem;
-  border-top: 1px solid var(--border);
+  border-top: 1pt solid var(--border);
+}
+
+@media print {
+  .report-footer { display: none; }
 }

@@ -1,43 +1,53 @@
-.report-body h1,
-.report-body h2 {
-  font-size: 1.25rem;
+.report-body h1 {
+  font-size: 16pt;
   font-weight: 700;
-  color: var(--blue);
+  color: var(--navy);
   margin: 2rem 0 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--border);
+  padding-bottom: 0.4rem;
+  border-bottom: 1.5pt solid var(--border);
+}
+
+.report-body h2 {
+  font-size: 14pt;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 1.75rem 0 0.75rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1pt solid var(--border);
 }
 
 .report-body h3 {
-  font-size: 1rem;
+  font-size: 12pt;
   font-weight: 700;
-  color: var(--dark);
+  color: var(--navy);
   margin: 1.25rem 0 0.5rem;
 }
 
 .report-body p {
-  line-height: 1.8;
-  color: #475569;
+  font-size: 12pt;
+  line-height: 1.5;
+  color: var(--dark);
   margin-bottom: 0.75rem;
 }
 
 .report-body ul,
 .report-body ol {
-  line-height: 1.8;
-  color: #475569;
-  margin: 0.5rem 0 0.75rem 1.5rem;
+  font-size: 12pt;
+  line-height: 1.5;
+  color: var(--dark);
+  margin: 0.4rem 0 0.75rem 1.5rem;
 }
 
 .report-body pre {
   background: #1e293b;
   color: #7dd3fc;
   font-family: monospace;
-  font-size: 0.8rem;
+  font-size: 10pt;
   padding: 1rem 1.25rem;
-  border-radius: 0.5rem;
+  border-radius: 0.25rem;
   overflow-x: auto;
   margin: 0.75rem 0;
-  line-height: 1.6;
+  line-height: 1.5;
   white-space: pre;
 }
 
@@ -45,8 +55,8 @@
   font-family: monospace;
   background: #f1f5f9;
   padding: 0.1em 0.35em;
-  border-radius: 0.25rem;
-  font-size: 0.85em;
+  border-radius: 0.2rem;
+  font-size: 10pt;
 }
 
 .report-body pre code {
@@ -59,19 +69,21 @@
   width: 100%;
   border-collapse: collapse;
   margin: 0.75rem 0;
-  font-size: 0.85rem;
+  font-size: 11pt;
 }
 
 .report-body th {
-  background: var(--blue);
+  background: var(--navy);
   color: white;
-  padding: 0.5rem 0.75rem;
+  padding: 0.4rem 0.75rem;
   text-align: left;
+  font-size: 11pt;
 }
 
 .report-body td {
-  padding: 0.4rem 0.75rem;
-  border-bottom: 1px solid var(--border);
+  padding: 0.35rem 0.75rem;
+  border-bottom: 1pt solid var(--border);
+  color: var(--dark);
 }
 
 .report-body tr:nth-child(even) td {

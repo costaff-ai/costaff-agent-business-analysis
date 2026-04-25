@@ -1,52 +1,67 @@
 .section-heading {
-  font-size: 1.25rem;
+  font-size: 14pt;
   font-weight: 700;
-  color: var(--blue);
+  color: var(--navy);
   margin: 2rem 0 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--border);
+  padding-bottom: 0.4rem;
+  border-bottom: 1.5pt solid var(--border);
 }
 
 .body-text {
-  line-height: 1.8;
-  color: #475569;
+  font-size: 12pt;
+  line-height: 1.5;
+  color: var(--dark);
   margin-bottom: 1rem;
 }
 
-.body-text h1,
-.body-text h2,
-.body-text h3 {
+.body-text h1 {
+  font-size: 16pt;
   font-weight: 700;
-  color: var(--blue);
+  color: var(--navy);
+  margin: 1.5rem 0 0.5rem;
+}
+
+.body-text h2 {
+  font-size: 14pt;
+  font-weight: 700;
+  color: var(--navy);
   margin: 1.25rem 0 0.5rem;
 }
 
-.body-text h1 { font-size: 1.2rem; }
-.body-text h2 { font-size: 1.05rem; }
-.body-text h3 { font-size: 0.95rem; }
+.body-text h3 {
+  font-size: 12pt;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 1rem 0 0.4rem;
+}
 
 .body-text p {
   margin-bottom: 0.75rem;
+}
+
+.body-text ul,
+.body-text ol {
+  margin: 0.4rem 0 0.75rem 1.5rem;
 }
 
 .body-text pre {
   background: #1e293b;
   color: #7dd3fc;
   font-family: monospace;
-  font-size: 0.8rem;
+  font-size: 10pt;
   padding: 1rem 1.25rem;
-  border-radius: 0.5rem;
+  border-radius: 0.25rem;
   overflow-x: auto;
   margin: 0.75rem 0;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 .body-text code {
   font-family: monospace;
   background: #f1f5f9;
   padding: 0.1em 0.35em;
-  border-radius: 0.25rem;
-  font-size: 0.85em;
+  border-radius: 0.2rem;
+  font-size: 10pt;
 }
 
 .body-text pre code {
@@ -59,19 +74,20 @@
   width: 100%;
   border-collapse: collapse;
   margin: 0.75rem 0;
-  font-size: 0.85rem;
+  font-size: 11pt;
 }
 
 .body-text th {
-  background: var(--blue);
+  background: var(--navy);
   color: white;
-  padding: 0.5rem 0.75rem;
+  padding: 0.4rem 0.75rem;
   text-align: left;
+  font-size: 11pt;
 }
 
 .body-text td {
-  padding: 0.4rem 0.75rem;
-  border-bottom: 1px solid var(--border);
+  padding: 0.35rem 0.75rem;
+  border-bottom: 1pt solid var(--border);
 }
 
 .body-text tr:nth-child(even) td {
@@ -81,26 +97,25 @@
 .metric-card {
   display: inline-block;
   background: white;
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  padding: 1.25rem 2rem;
+  border: 1pt solid var(--border);
+  border-radius: 0.4rem;
+  padding: 1rem 2rem;
   margin: 0.5rem 0.5rem 0.5rem 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .metric-label {
-  font-size: 0.7rem;
+  font-size: 9pt;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #94a3b8;
+  letter-spacing: 0.08em;
+  color: #64748b;
   margin-bottom: 0.25rem;
 }
 
 .metric-value {
-  font-size: 2rem;
+  font-size: 20pt;
   font-weight: 800;
-  color: var(--blue);
+  color: var(--navy);
 }
 
 .chart-figure {
@@ -110,24 +125,23 @@
 
 .chart-figure img {
   max-width: 100%;
-  border-radius: 0.75rem;
-  border: 1px solid var(--border);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1pt solid var(--border);
 }
 
 .chart-figure figcaption {
-  font-size: 0.8rem;
-  color: #94a3b8;
-  margin-top: 0.75rem;
+  font-size: 9pt;
+  color: #64748b;
+  margin-top: 0.5rem;
+  font-style: italic;
 }
 
 .divider {
   border: none;
-  border-top: 1px solid var(--border);
-  margin: 2rem 0;
+  border-top: 1pt solid var(--border);
+  margin: 1.5rem 0;
 }
 
 .error {
-  color: #ef4444;
-  font-size: 0.85rem;
+  color: #dc2626;
+  font-size: 10pt;
 }

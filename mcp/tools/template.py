@@ -17,13 +17,22 @@ MARKDOWN_CSS = _read("markdown.css")
 SECTIONS_CSS = _read("sections.css")
 
 
-def render_html(title: str, body_html: str, generated_at: str, extra_css: str) -> str:
-    return _HTML_TEMPLATE.substitute(
+def render_html(
+    title: str,
+    body_html: str,
+    generated_at: str,
+    extra_css: str,
+    issuer: str = "CoStaff Business Analysis Agent",
+    confidentiality: str = "",
+) -> str:
+    return _HTML_TEMPLATE.safe_substitute(
         title=title,
         base_css=_BASE_CSS,
         extra_css=extra_css,
         generated_at=generated_at,
         body_html=body_html,
+        issuer=issuer,
+        confidentiality=confidentiality,
     )
 
 

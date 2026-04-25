@@ -8,6 +8,21 @@ from core import mcp, COSTAFF_SHARED_DIR_BUSINESS_ANALYSIS as AGENT_BUSINESS_ANA
 from .template import render_html, inject_noto_font, img_to_base64, MARKDOWN_CSS, SECTIONS_CSS
 
 
+def _html_to_pdf(html_content: str, html_path: str, pdf_path: str) -> str:
+    """Write HTML to disk and convert to PDF via WeasyPrint. Returns '[OK] PDF saved: <path>' or '[ERROR] ...'."""
+    try:
+        from weasyprint import HTML as WeasyprintHTML
+    except ImportError:
+        return "[ERROR] weasyprint is not installed."
+    try:
+        Path(html_path).write_text(html_content, encoding="utf-8")
+        patched = inject_noto_font(html_content)
+        WeasyprintHTML(string=patched, base_url=str(Path(html_path).parent)).write_pdf(pdf_path)
+        return f"[OK] PDF saved: {pdf_path}"
+    except Exception as e:
+        return f"[ERROR] PDF export failed: {e}"
+
+
 @mcp.tool()
 def create_report_from_markdown(
     title: str,
@@ -15,13 +30,15 @@ def create_report_from_markdown(
     output_filename: str,
 ) -> str:
     """
-    Create a formatted HTML report from plain Markdown content.
+    Create a formatted report from plain Markdown content.
 
     Use this tool whenever the report body contains code snippets, backslashes, or
     any content that would be hard to embed safely inside a JSON string.
     markdown_content: the full report body as a Markdown string (headings, lists, code blocks, tables).
-    output_filename: saved under the BA shared dir (e.g. 'python_questions.html').
-    Returns: absolute path to the saved HTML file.
+    output_filename: filename under the BA shared dir.
+      - End with '.html' to get an HTML file.
+      - End with '.pdf'  to get a PDF directly (HTML is created automatically as an intermediate step).
+    Returns: absolute path to the saved file.
     """
     ensure_dir(AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR)
     generated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -31,9 +48,15 @@ def create_report_from_markdown(
     )
     wrapped_body = f'<div class="report-body">\n{body_html}\n  </div>'
     html = render_html(title, wrapped_body, generated_at, MARKDOWN_CSS)
+
+    stem = Path(output_filename).stem
+    if output_filename.lower().endswith(".pdf"):
+        html_path = abs_reports(f"{stem}.html")
+        pdf_path  = abs_reports(output_filename)
+        return _html_to_pdf(html, html_path, pdf_path)
+
     out_path = abs_reports(output_filename)
-    with open(out_path, "w", encoding="utf-8") as f:
-        f.write(html)
+    Path(out_path).write_text(html, encoding="utf-8")
     return f"[OK] Report saved: {out_path}"
 
 
@@ -58,8 +81,10 @@ def create_html_report(
         {"type": "image", "path": "/app/data/reports/confusion_matrix.png", "caption": "Confusion Matrix"}
       ]
 
-    output_filename: saved under /app/data/reports/ (e.g. 'wine_svm_report.html')
-    Returns: absolute path to saved HTML.
+    output_filename: filename under the BA shared dir.
+      - End with '.html' to get an HTML file.
+      - End with '.pdf'  to get a PDF directly (HTML is created automatically as an intermediate step).
+    Returns: absolute path to the saved file.
     """
     ensure_dir(AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR)
     try:
@@ -103,9 +128,15 @@ def create_html_report(
 
     generated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     html = render_html(title, "\n".join(body_parts), generated_at, SECTIONS_CSS)
+
+    stem = Path(output_filename).stem
+    if output_filename.lower().endswith(".pdf"):
+        html_path = abs_reports(f"{stem}.html")
+        pdf_path  = abs_reports(output_filename)
+        return _html_to_pdf(html, html_path, pdf_path)
+
     out_path = abs_reports(output_filename)
-    with open(out_path, "w", encoding="utf-8") as f:
-        f.write(html)
+    Path(out_path).write_text(html, encoding="utf-8")
     return f"[OK] Report saved: {out_path}"
 
 
