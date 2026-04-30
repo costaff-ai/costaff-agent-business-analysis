@@ -30,4 +30,10 @@ business_analysis_agent = LlmAgent(
     instruction=instruction,
     tools=tools,
     sub_agents=[],
+    # Leaf agent: A2A response auto-returns control to the manager.
+    # Both flags + empty sub_agents → ADK uses SingleFlow and omits the
+    # transfer-to-agent system prompt, preventing Gemini from hallucinating
+    # `transfer_to_agent` calls that would crash the run.
+    disallow_transfer_to_parent=True,
+    disallow_transfer_to_peers=True,
 )
