@@ -68,9 +68,16 @@ def load_all_mcp_toolsets() -> List[McpToolset]:
             if isinstance(entry, dict) and not entry.get("enabled", True):
                 logger.info(f"Skipping disabled extra MCP: {name}")
                 continue
+            tool_filter = entry.get("tool_filter") if isinstance(entry, dict) else None
             try:
-                toolsets.append(McpToolset(connection_params=_connection_params(entry)))
-                logger.info(f"Added extra MCP: {name}")
+                toolsets.append(McpToolset(
+                    connection_params=_connection_params(entry),
+                    tool_filter=tool_filter,
+                ))
+                if tool_filter:
+                    logger.info(f"Added extra MCP: {name} (filtered to {len(tool_filter)} tools: {tool_filter})")
+                else:
+                    logger.info(f"Added extra MCP: {name} (no filter — all tools imported)")
             except Exception as e:
                 logger.error(f"Failed to load extra MCP '{name}': {e}")
 
