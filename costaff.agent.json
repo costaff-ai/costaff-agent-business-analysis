@@ -1,4 +1,5 @@
 {
+  "protocol_version": "1.0",
   "name": "costaff-agent-business-analysis",
   "version": "0.1.0",
   "description": "[專長] 商業分析與視覺化報告。[能力] 數據洞察分析、自動選擇圖表、撰寫分析敘事、產出精美排版報告。[限制] 不負責大規模原始數據清洗或底層程式邏輯開發。[產出] 高品質 PDF 報告、PPT 投影片、專業 PNG 圖表（支援完整多國語言/中文）。",
