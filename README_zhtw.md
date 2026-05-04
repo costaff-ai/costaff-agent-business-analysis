@@ -214,4 +214,4 @@ CoStaff 會讀取 `costaff.agent.json`，自動建立容器、註冊 Agent，並
 
 ## 授權
 
-本專案採用 MIT 授權條款。詳見 `LICENSE`。
+本專案採用 Apache 2.0 授權條款。詳見 `LICENSE`。

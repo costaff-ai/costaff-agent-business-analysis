@@ -214,4 +214,4 @@ Additional MCPs can be assigned dynamically from the **CoStaff dashboard** under
 
 ## License
 
-Distributed under the MIT License. See `LICENSE` for details.
+Distributed under the Apache 2.0 License. See `LICENSE` for details.
