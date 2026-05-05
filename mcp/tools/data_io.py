@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 import pandas as pd
-from core import mcp, SHARED_DIR, abs_shared
+from core import mcp, SHARED_DIR, abs_shared, ensure_dir, COSTAFF_SHARED_DIR_BUSINESS_ANALYSIS
 
 
 @mcp.tool()
@@ -20,6 +20,27 @@ def list_workspace(subdir: str = "") -> str:
         f"{f.relative_to(Path(SHARED_DIR))} ({f.stat().st_size} bytes)"
         for f in files
     )
+
+
+@mcp.tool()
+def ensure_directory(subdir: str) -> str:
+    """
+    Create a kebab-case subdirectory under the BA shared slot if it does not exist.
+    Idempotent — safe to call even when the directory already exists.
+
+    subdir: kebab-case directory name (e.g. 'wine-eda-report', 'sales-analysis')
+            Must be relative — never an absolute path.
+    Returns: confirmation string with the resulting absolute path.
+
+    Note: write tools (export_pdf, create_html_report, generate_chart) already
+    auto-create their parent directory, so calling this first is optional.
+    Use it only when you want to verify or pre-create the report directory.
+    """
+    if subdir.startswith("/"):
+        return f"[ERROR] subdir must be relative, got absolute path: {subdir}"
+    target = Path(COSTAFF_SHARED_DIR_BUSINESS_ANALYSIS) / subdir
+    ensure_dir(str(target))
+    return f"Directory ready: {target}"
 
 
 @mcp.tool()

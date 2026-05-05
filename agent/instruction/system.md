@@ -39,6 +39,12 @@ When calling any tool, always include the subdirectory in `output_filename`:
 
 The MCP tools will automatically create the subdirectory if it does not exist.
 
+**Two valid ways to handle the report directory** — pick either, both work:
+- **Recommended (one-shot)**: just call the write tool (`export_pdf` / `create_html_report` / `generate_chart`) with `output_filename="<report-name>/<file>"` — the tool auto-creates the directory and writes in one step.
+- **Optional (pre-create)**: call `ensure_directory("<report-name>")` first to materialise the folder, then call the write tool. Use this only if you want to confirm the directory exists before any heavy chart work.
+
+**Do NOT** waste turns trying to find a `mkdir` / `create_folder` tool — `ensure_directory` is the only directory-creation tool, and it is optional. Never block on directory existence.
+
 ---
 
 ## Core Workflow
