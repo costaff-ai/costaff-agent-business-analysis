@@ -59,16 +59,19 @@ Tool: create_report_from_markdown
 Args:
   title           — descriptive report title, e.g. "量子力學介紹"
   markdown_content — the full Markdown string from Step 2
-  output_filename  — snake_case .html filename, e.g. "quantum_mechanics.html"
+  output_filename  — kebab-case <report-name>/<file>.html,
+                     e.g. "quantum-mechanics/quantum_mechanics.html"
 ```
+
+The directory part (`quantum-mechanics/`) MUST match the report-name the caller specified, or be derived in **kebab-case** from the topic if none specified. Never write the file at the BA shared root without a subdirectory.
 
 ### Step 4. Call export_pdf
 
 ```
 Tool: export_pdf
 Args:
-  html_filename   — same filename from Step 3, e.g. "quantum_mechanics.html"
-  output_filename — same base name with .pdf, e.g. "quantum_mechanics.pdf"
+  html_filename   — same path from Step 3, e.g. "quantum-mechanics/quantum_mechanics.html"
+  output_filename — same path with .pdf, e.g. "quantum-mechanics/quantum_mechanics.pdf"
 ```
 
 ### Step 5. Report back

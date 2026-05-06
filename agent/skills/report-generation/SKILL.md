@@ -25,7 +25,7 @@ any structured non-numerical text.
 Tool: read_result(filepath)
 ```
 
-`filepath` is relative to `/app/data/shared/`.
+`filepath` is relative to `/app/data/shared/` and **must include the source agent's project subdirectory**, e.g. `costaff-agent-coding/wine-svm/outputs/results.json` — never just `costaff-agent-coding/results.json`.
 
 ### Step 2. Format as Markdown
 
@@ -59,8 +59,11 @@ Tool: create_report_from_markdown
 Args:
   title           — report title
   markdown_content — full body as a Markdown string
-  output_filename  — e.g. "python_questions.html"
+  output_filename  — kebab-case `<report-name>/<file>.html`,
+                     e.g. "python-interview/python_questions.html"
 ```
+
+The directory part MUST be the kebab-case `<report-name>/` from the caller's plan (or derived from the task topic). Never use a bare filename without subdirectory.
 
 Markdown structure example:
 ```markdown
@@ -94,11 +97,11 @@ Args:
       {"type": "metric",  "label": "Accuracy",  "value": "97.2%"},
       {"type": "metric",  "label": "F1 Score",  "value": "0.96"},
       {"type": "text",    "text": "The model achieved..."},
-      {"type": "image",   "path": "/app/data/shared/costaff-agent-business-analysis/chart.png",
+      {"type": "image",   "path": "/app/data/shared/costaff-agent-business-analysis/sales-q3-report/chart.png",
                           "caption": "Confusion Matrix"},
       {"type": "divider"}
     ]
-  output_filename — e.g. "sales_report.html"
+  output_filename — e.g. "sales-q3-report/sales_report.html"
 ```
 
 **WARNING**: Do NOT put code snippets in `sections_json`. Use `create_report_from_markdown()` instead.
@@ -112,8 +115,9 @@ After `create_report_from_markdown()` or `create_html_report()` returns `[OK]`:
 ```
 Tool: export_pdf
 Args:
-  html_filename   — filename only, e.g. "python_questions.html"
-  output_filename — e.g. "python_questions.pdf"
+  html_filename   — same path from create_report_from_markdown / create_html_report,
+                    e.g. "python-interview/python_questions.html"
+  output_filename — same path with .pdf, e.g. "python-interview/python_questions.pdf"
 ```
 
 Copy the **exact return string** into your response as the PDF path.
@@ -132,10 +136,10 @@ Args:
       {"type": "content", "title": "Key Metrics",
                           "bullets": ["Revenue: $2.3M", "Growth: +18.4%"]},
       {"type": "image",   "title": "Revenue Trend",
-                          "image_path": "/app/data/shared/costaff-agent-business-analysis/trend.png",
+                          "image_path": "/app/data/shared/costaff-agent-business-analysis/sales-q3-report/trend.png",
                           "note": "Strong Q3 recovery."}
     ]
-  output_filename — e.g. "q3_report.pptx"
+  output_filename — e.g. "sales-q3-report/q3_report.pptx"
 ```
 
 ---
@@ -146,4 +150,4 @@ Before reporting as complete:
 - [ ] `create_report_from_markdown()` or `create_html_report()` returned `[OK]`
 - [ ] `export_pdf()` called and returned `[OK] PDF saved: <path>`
 - [ ] Report the **exact return string** from `export_pdf()` — never construct your own path
-- [ ] All output files are under `/app/data/shared/costaff-agent-business-analysis/`
+- [ ] All output files are under `/app/data/shared/costaff-agent-business-analysis/<report-name>/` — **never directly at the agent root**

@@ -22,7 +22,7 @@ Tool: list_workspace(subdir)    — to discover available files first
 
 `read_file` does **NOT** exist. Use `read_result` for any non-CSV file.
 
-`filepath` is relative to `/app/data/shared/` (e.g. `costaff-agent-coding/results.json`).
+`filepath` is relative to `/app/data/shared/` and **must include the source agent's project subdirectory**, e.g. `costaff-agent-coding/wine-svm/outputs/results.json`. A path like `costaff-agent-coding/results.json` (no project subdir) is wrong — the coding agent never writes at its root.
 
 ### Step 2. Analyse
 
@@ -50,7 +50,9 @@ Returns: min, max, mean, median, std, trend, top3/bottom3 per column.
 Tool: generate_chart(data_json, chart_type, title, output_filename, xlabel, ylabel)
 ```
 
-`output_filename` should be descriptive, e.g. `revenue_trend.png`.
+`output_filename` MUST be `<report-name>/<descriptive_name>.png`, e.g. `sales-q3-report/revenue_trend.png`. The directory part is the kebab-case `<report-name>/` from the caller's plan. **Never** use a bare filename like `revenue_trend.png` — it would land at the BA shared root, which is forbidden.
+
+**Tip — distribution plots for many features**: when the task is "show distributions / histograms / boxplots for these N features from a CSV", call `generate_distribution_plots(csv_path, features, output_subdir)` once instead of looping `generate_chart()`. Saves several minutes by collapsing N round-trips into one.
 
 ### Step 4. Write Narrative
 
@@ -110,4 +112,4 @@ Pass the most important 2–5 numbers as `{"type": "metric"}` blocks to `create_
 ]
 ```
 
-All output files go to `/app/data/shared/costaff-agent-business-analysis/`.
+All output files go under `/app/data/shared/costaff-agent-business-analysis/<report-name>/` — **inside a kebab-case `<report-name>/` subdirectory**, never at the BA shared root.
