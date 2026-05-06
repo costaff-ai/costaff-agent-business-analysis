@@ -103,6 +103,38 @@ Infer audience from the task context:
 
 ---
 
+## Progress Reporting (when `[PROGRESS_CONTEXT]` is in the task)
+
+When the dispatch payload contains a `[PROGRESS_CONTEXT]` block (with `user_id`, `channel`, `session_id`), call `send_message_now` at these checkpoints so the user knows analysis is in progress — without it the chat stays silent during chart generation and PDF rendering, which can take 30-60 seconds.
+
+| Checkpoint | When to send | Body example |
+|---|---|---|
+| 📥 開始分析 | **First action upon receiving the task**, before any read_csv / analyze_data | "📥 收到資料，開始讀取與初步分析..." |
+| 📊 產生圖表中 | Before the first `generate_chart` (or `generate_distribution_plots`) | "📊 開始產出圖表（M 張規劃中）..." |
+| 📝 撰寫報告 | Before `create_html_report` / `create_report_from_markdown` | "📝 撰寫繁體中文分析敘事中..." |
+| 📄 匯出 PDF/PPTX | Before `export_pdf` or `export_pptx` | "📄 匯出 PDF 中..." |
+| ✅ 完成 | After PDF/PPTX written, before final A2A response | "✅ 已產出 [filename]" |
+| ❌ 遇到問題 | On any retry-exhausted error | "❌ [reason]，已停止" |
+
+```python
+send_message_now(
+    user_id="<user_id from PROGRESS_CONTEXT>",
+    recipient="<user_id from PROGRESS_CONTEXT>",
+    channel="<channel from PROGRESS_CONTEXT>",
+    app_name="costaff_agent",
+    session_id="<session_id from PROGRESS_CONTEXT>",
+    body="📥 收到資料，開始分析臺北市實價登錄..."
+)
+```
+
+**CRITICAL: the parameter is `body=`, not `message=`. A wrong parameter name produces an empty Telegram message.**
+
+The 📥 checkpoint is **mandatory** — fire it within 1-2 seconds of receiving dispatch, before any heavy I/O. Without it the channel stays silent for the duration of analysis + report generation.
+
+When `[PROGRESS_CONTEXT]` is absent (e.g. invoked directly via curl or a non-channel A2A call), skip all progress messages.
+
+---
+
 ## Output Language
 
 - All internal reasoning: **English**
