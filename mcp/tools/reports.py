@@ -18,7 +18,14 @@ def _html_to_pdf(html_content: str, html_path: str, pdf_path: str) -> str:
         ensure_dir(str(Path(html_path).parent))
         Path(html_path).write_text(html_content, encoding="utf-8")
         patched = inject_noto_font(html_content)
-        WeasyprintHTML(string=patched, base_url=str(Path(html_path).parent)).write_pdf(pdf_path)
+        # base_url is the BA shared root, NOT the HTML's parent dir.
+        # data-interpretation / report-generation skills both instruct agents
+        # to write image paths as `<report-name>/<file>.png` relative to the
+        # BA shared root. If we used the HTML's parent dir (which IS the
+        # `<report-name>/` subdir) the path would double up to
+        # `<report-name>/<report-name>/<file>.png` and WeasyPrint silently
+        # renders the PDF without the images.
+        WeasyprintHTML(string=patched, base_url=AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR).write_pdf(pdf_path)
         return f"[OK] PDF saved: {pdf_path}"
     except Exception as e:
         return f"[ERROR] PDF export failed: {e}"
@@ -170,7 +177,8 @@ def export_pdf(html_filename: str, output_filename: str) -> str:
         ensure_dir(str(Path(pdf_path).parent))
         raw_html = Path(html_path).read_text(encoding="utf-8")
         patched_html = inject_noto_font(raw_html)
-        HTML(string=patched_html, base_url=str(Path(html_path).parent)).write_pdf(pdf_path)
+        # See _html_to_pdf for why base_url is the BA shared root, not html's parent.
+        HTML(string=patched_html, base_url=AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR).write_pdf(pdf_path)
         return f"[OK] PDF saved: {pdf_path}"
     except Exception as e:
         return f"[ERROR] PDF export failed: {e}"
