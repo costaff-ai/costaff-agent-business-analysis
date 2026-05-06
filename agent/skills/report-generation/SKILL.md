@@ -65,6 +65,25 @@ Args:
 
 The directory part MUST be the kebab-case `<report-name>/` from the caller's plan (or derived from the task topic). Never use a bare filename without subdirectory.
 
+### Image references in markdown (CRITICAL)
+
+When embedding charts in `markdown_content`, the `src` MUST be either:
+- A **bare filename** that lives next to the HTML (e.g. `![alt](chart.png)`), OR
+- A **path relative to the BA shared root** (e.g. `![alt](sales-q3-report/chart.png)`), OR
+- An **absolute path** starting with `/app/data/` (e.g. `![alt](/app/data/shared/costaff-agent-business-analysis/sales-q3-report/chart.png)`).
+
+**NEVER use a remote URL** (`http://`, `https://`, `https://raw.githubusercontent.com/...`). The tool now rejects markdown containing remote image URLs because gemini has been observed hallucinating them — `WeasyPrint` would silently produce an image-less PDF. If you find yourself wanting to write a URL, you're doing it wrong: use the exact filename that `generate_chart` just returned to you.
+
+Correct:
+```markdown
+![房價與 PM2.5 對比](taipei-q3-report/price_vs_pm25.png)
+```
+
+Wrong (will be rejected):
+```markdown
+![房價與 PM2.5 對比](https://raw.githubusercontent.com/.../price_vs_pm25.png)
+```
+
 Markdown structure example:
 ```markdown
 ## Introduction

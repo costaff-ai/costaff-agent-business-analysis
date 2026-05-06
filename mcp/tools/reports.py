@@ -47,7 +47,26 @@ def create_report_from_markdown(
       - End with '.html' to get an HTML file.
       - End with '.pdf'  to get a PDF directly (HTML is created automatically as an intermediate step).
     Returns: absolute path to the saved file.
+
+    IMPORTANT — image references: image src in markdown MUST be either
+    (a) a bare filename like `chart.png`, (b) a path relative to the BA
+    shared root like `<report-name>/chart.png`, or (c) an absolute path
+    starting with `/app/data/`. Remote URLs (http://, https://) are
+    rejected at validation — they would 404 at PDF render time.
     """
+    # Hallucination guard: reject markdown with remote-URL image refs.
+    # gemini-3-flash-preview has been observed inventing URLs like
+    # `https://raw.githubusercontent.com/.../chart.png` that don't exist.
+    # WeasyPrint silently fails on those and ships an image-less PDF.
+    url_imgs = re.findall(r'!\[[^\]]*\]\((https?://[^)]+)\)', markdown_content)
+    if url_imgs:
+        return (
+            "[ERROR] markdown_content contains remote image URLs which are "
+            "always 404. Use the exact filenames returned by generate_chart "
+            "(e.g. `<report-name>/chart.png`), not http(s) URLs. "
+            f"Offenders: {url_imgs[:3]}"
+        )
+
     generated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     body_html = md_parser.markdown(
         markdown_content,
