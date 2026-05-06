@@ -2,6 +2,7 @@ import os
 import json
 import traceback
 import numpy as np
+import pandas as pd
 from pathlib import Path
 from core import mcp, COSTAFF_SHARED_DIR_BUSINESS_ANALYSIS as AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR, ensure_dir
 
@@ -233,3 +234,109 @@ def generate_chart(
     except Exception as e:
         plt.close(fig)
         return f"[ERROR] Chart generation failed: {e}\n{traceback.format_exc()}"
+
+
+@mcp.tool()
+def generate_distribution_plots(
+    csv_path: str,
+    features: list[str],
+    output_subdir: str,
+    include_boxplot: bool = True,
+    bins: int = 30,
+) -> str:
+    """
+    Batch-generate distribution charts (histogram + optional boxplot) for
+    multiple numeric features from a single CSV — in ONE tool call instead
+    of one call per feature.
+
+    PREFERRED OVER `generate_chart()` when the task is "produce distribution
+    plots / histograms / boxplots for these N features". Saves several minutes
+    by collapsing N LLM round-trips into one.
+
+    Args:
+      csv_path: absolute path to the input CSV
+        (e.g. "/app/data/shared/costaff-agent-coding/wine-eda/outputs/wine_data.csv")
+      features: column names to plot, e.g. ["alcohol", "malic_acid", "ash", "flavanoids"]
+      output_subdir: kebab-case <report-name>/ under the BA shared slot
+        (e.g. "wine-eda-report"). Must match exactly what the caller specified.
+      include_boxplot: also produce a boxplot per feature (default True)
+      bins: histogram bin count (default 30)
+
+    Returns: JSON string of shape:
+      {"ok": true, "paths": ["...histogram.png", "...boxplot.png", ...], "errors": [...]}
+      On a fatal error (e.g. CSV unreadable):
+      {"ok": false, "error": "..."}
+    """
+    if not output_subdir or output_subdir.startswith("/"):
+        return json.dumps({
+            "ok": False,
+            "error": "output_subdir must be a relative kebab-case directory (e.g. 'wine-eda-report'), not absolute or empty.",
+        })
+
+    try:
+        df = pd.read_csv(csv_path)
+    except Exception as e:
+        return json.dumps({"ok": False, "error": f"Cannot read CSV at {csv_path}: {e}"})
+
+    plt = _get_plt()
+    out_dir = Path(AGENT_BUSINESS_ANALYSIS_WORKSPACE_DIR) / output_subdir
+    ensure_dir(str(out_dir))
+
+    paths: list[str] = []
+    errors: list[str] = []
+
+    for feature in features:
+        if feature not in df.columns:
+            errors.append(f"Column '{feature}' not in CSV (available: {list(df.columns)[:10]}...)")
+            continue
+
+        values = df[feature].dropna().values
+        if len(values) == 0:
+            errors.append(f"Column '{feature}' has no non-null values")
+            continue
+
+        # Histogram
+        fig = None
+        try:
+            fig, ax = plt.subplots(figsize=(9, 6))
+            ax.hist(values, bins=bins, color=PALETTE[0], edgecolor="white", linewidth=0.4)
+            ax.set_title(f"{feature} — Distribution", fontsize=13, fontweight="bold", pad=14)
+            ax.set_xlabel(feature)
+            ax.set_ylabel("Frequency")
+            plt.tight_layout()
+            hist_path = str(out_dir / f"{feature}_histogram.png")
+            plt.savefig(hist_path, dpi=150, bbox_inches="tight")
+            paths.append(hist_path)
+        except Exception as e:
+            errors.append(f"Histogram for {feature} failed: {e}")
+        finally:
+            if fig is not None:
+                plt.close(fig)
+
+        if not include_boxplot:
+            continue
+
+        # Boxplot
+        fig = None
+        try:
+            fig, ax = plt.subplots(figsize=(9, 6))
+            ax.boxplot(
+                [values],
+                tick_labels=[feature],
+                patch_artist=True,
+                boxprops=dict(facecolor=PALETTE[0], alpha=0.6),
+                medianprops=dict(color="#1e293b", linewidth=2),
+            )
+            ax.set_title(f"{feature} — Boxplot", fontsize=13, fontweight="bold", pad=14)
+            ax.set_ylabel(feature)
+            plt.tight_layout()
+            box_path = str(out_dir / f"{feature}_boxplot.png")
+            plt.savefig(box_path, dpi=150, bbox_inches="tight")
+            paths.append(box_path)
+        except Exception as e:
+            errors.append(f"Boxplot for {feature} failed: {e}")
+        finally:
+            if fig is not None:
+                plt.close(fig)
+
+    return json.dumps({"ok": True, "paths": paths, "errors": errors}, ensure_ascii=False)

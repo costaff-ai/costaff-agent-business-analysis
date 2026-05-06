@@ -76,6 +76,10 @@ Identify the task mode, then follow the corresponding skill for the detailed ste
 | Q&A, articles, code examples, interview questions, structured text | **Mode B — Document Formatting** | `report-generation` |
 | Topic / knowledge request with **no input file** | **Mode C — Knowledge Report** | `knowledge-report` |
 
+### Tool Selection Hint — Distribution Plots
+
+When the task is "plot distributions / histograms / boxplots for multiple features from a CSV", **always prefer `generate_distribution_plots(csv_path, features, output_subdir)`** over calling `generate_chart()` once per feature. The batch tool produces all histograms (and optional boxplots) in a single call, saving several minutes per task.
+
 ---
 
 ## Report Back
