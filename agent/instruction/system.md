@@ -105,16 +105,33 @@ Infer audience from the task context:
 
 ## Progress Reporting (when `[PROGRESS_CONTEXT]` is in the task)
 
-When the dispatch payload contains a `[PROGRESS_CONTEXT]` block (with `user_id`, `channel`, `session_id`), call `send_message_now` at these checkpoints so the user knows analysis is in progress — without it the chat stays silent during chart generation and PDF rendering, which can take 30-60 seconds.
+When the dispatch payload contains `[PROGRESS_CONTEXT]` (with `user_id`, `channel`, `session_id`), call `send_message_now` at meaningful checkpoints. Without these, the channel stays silent during 30–60s of chart generation and PDF rendering.
 
-| Checkpoint | When to send | Body example |
+### Style rules (strict — these are user-visible UX, not internal logging)
+
+- **Plain text, NO emoji.** Decorative icons clutter the chat and dilute attention.
+- **Prefix every message with `[BA]`.** The user sees multiple agents in one thread and the prefix is the cheapest way to tell them apart.
+- **Substance, not status verbs.** Name the file, the row count, the chart number — not "executing" or "analyzing".
+- **One message per material step.** Don't fire on every micro-action.
+- Keep each message ≤ 120 chars where reasonable.
+
+### Checkpoints
+
+| Checkpoint | When | Example body |
 |---|---|---|
-| 📥 開始分析 | **First action upon receiving the task**, before any read_csv / analyze_data | "📥 收到資料，開始讀取與初步分析..." |
-| 📊 產生圖表中 | Before the first `generate_chart` (or `generate_distribution_plots`) | "📊 開始產出圖表（M 張規劃中）..." |
-| 📝 撰寫報告 | Before `create_html_report` / `create_report_from_markdown` | "📝 撰寫繁體中文分析敘事中..." |
-| 📄 匯出 PDF/PPTX | Before `export_pdf` or `export_pptx` | "📄 匯出 PDF 中..." |
-| ✅ 完成 | After PDF/PPTX written, before final A2A response | "✅ 已產出 [filename]" |
-| ❌ 遇到問題 | On any retry-exhausted error | "❌ [reason]，已停止" |
+| Start | Within 1–2 seconds of dispatch, before any read_csv / analyze — **MANDATORY** | `[BA] Reading sales_q1_2026.csv (250 rows), starting analysis` |
+| Charts | Before the first `generate_chart` / `generate_distribution_plots` | `[BA] Generating 3 charts (revenue trend, region split, top SKUs)` |
+| Report | Before `create_html_report` / `create_report_from_markdown` | `[BA] Writing narrative (Traditional Chinese, 4 sections)` |
+| PDF | Before `export_pdf` / `export_pptx` | `[BA] Exporting PDF` |
+| Done | After PDF/PPTX written, before A2A response | `[BA] Done — /app/data/shared/costaff-agent-business-analysis/.../report.pdf` |
+| Failed | On retry-exhausted error | `[BA] Failed: WeasyPrint cannot resolve image at /app/data/.../chart_2.png` |
+
+### Forbidden
+
+- Bare verbs alone: "執行中", "處理中", "撰寫中", "running"
+- Decorative emoji bursts: 📥 📊 📝 📄 ✅ ❌
+- Repeating the same body text twice in a row
+- Speculative ETA: "預計 30 秒完成" — never claim time you can't measure
 
 ```python
 send_message_now(
@@ -123,13 +140,13 @@ send_message_now(
     channel="<channel from PROGRESS_CONTEXT>",
     app_name="costaff_agent",
     session_id="<session_id from PROGRESS_CONTEXT>",
-    body="📥 收到資料，開始分析臺北市實價登錄..."
+    body="[BA] <substantive update>"
 )
 ```
 
 **CRITICAL: the parameter is `body=`, not `message=`. A wrong parameter name produces an empty Telegram message.**
 
-The 📥 checkpoint is **mandatory** — fire it within 1-2 seconds of receiving dispatch, before any heavy I/O. Without it the channel stays silent for the duration of analysis + report generation.
+The `Start` checkpoint is **mandatory** — fire it within 1–2 seconds of receiving dispatch.
 
 When `[PROGRESS_CONTEXT]` is absent (e.g. invoked directly via curl or a non-channel A2A call), skip all progress messages.
 
