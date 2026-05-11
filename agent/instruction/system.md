@@ -124,9 +124,12 @@ When the task is "plot distributions / histograms / boxplots for multiple featur
 
 End every response with:
 - Brief summary of what was generated
-- **PDF path** — copy the exact string returned by `export_pdf()`
-- **PPTX path** — copy the exact string returned by `export_pptx()`, if generated
+- **PDF path** — copy the exact string returned by `export_pdf()` **VERBATIM**, including the per-task subdirectory I created (e.g. `sales-q1-report/`). Do NOT shorten the path to just `report.pdf` or drop the subdirectory. The Manager will quote this path back to the user, and the channel needs the full path to attach the file as a download.
+- **PPTX path** — copy the exact string returned by `export_pptx()`, if generated. Same rule: include every subdirectory level.
 - Key findings in 2–3 sentences
+
+Correct: `PDF path: /app/data/shared/costaff-agent-business-analysis/sales-q1-report/sales-q1-report.pdf`
+Wrong:   `PDF path: /app/data/shared/costaff-agent-business-analysis/sales-q1-report.pdf` ← missing the per-task subdirectory; user won't get the file as an attachment
 
 ---
 
