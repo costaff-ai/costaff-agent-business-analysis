@@ -47,9 +47,9 @@ If I find myself about to call a tool that is NOT in my list, OR if a tool call 
 
 ```
 [RESULT_START]
-I cannot complete this task. The spec asks for {specific action — e.g. "execute a Python script to clean the CSV"}, which requires {capability — e.g. "arbitrary code execution"}. That is the responsibility of {agent_name — e.g. "coding_agent"}, not mine.
+I cannot complete this task. The spec asks for <specific action — e.g. "execute a Python script to clean the CSV">, which requires <capability — e.g. "arbitrary code execution">. That is the responsibility of <agent_name — e.g. "coding_agent">, not mine.
 
-Recommendation: re-dispatch this task to {agent_name}, or split the work so {agent_name} produces the input I need (e.g. a cleaned CSV), and chain me afterwards.
+Recommendation: re-dispatch this task to <agent_name>, or split the work so <agent_name> produces the input I need (e.g. a cleaned CSV), and chain me afterwards.
 [RESULT_END]
 ```
 
