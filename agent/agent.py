@@ -9,12 +9,9 @@ from instruction import build_instruction
 from mcp_toolsets import load_all_mcp_toolsets
 from models import selected_model
 from skills import load_all_skills
-from tools import load_costaff_api_tools
 
-# Tools = own MCP toolset(s) + native HTTP wrappers for the 4 shared
-# manager-core tools (race-free, replaces the 2nd MCP session) + skills.
+# Tools = MCP toolsets + Skill toolset
 tools = list(load_all_mcp_toolsets())
-tools.extend(load_costaff_api_tools())
 tools.append(load_all_skills())
 
 # Instruction (placeholders resolved here)

@@ -1,4 +1,4 @@
-google-adk[a2a]
+google-adk[a2a]==1.31.1
 python-dotenv
 httpx
 pandas
