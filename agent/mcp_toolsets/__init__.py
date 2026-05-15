@@ -65,6 +65,16 @@ def load_all_mcp_toolsets() -> List[McpToolset]:
             return toolsets
 
         for name, entry in extra_config.items():
+            # The manager-core ("costaff") MCP's 4 shared tools are now
+            # reached via the plain-HTTP shim (agent/tools/costaff_api.py)
+            # instead of a 2nd MCP session — that 2nd session is what
+            # triggered the anyio CancelScope race. Skip it here.
+            if name == "costaff":
+                logger.info(
+                    "Skipping costaff-core MCP — using native HTTP tool "
+                    "wrappers instead (race-free)"
+                )
+                continue
             if isinstance(entry, dict) and not entry.get("enabled", True):
                 logger.info(f"Skipping disabled extra MCP: {name}")
                 continue
