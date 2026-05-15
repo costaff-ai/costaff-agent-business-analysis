@@ -50,7 +50,14 @@ def load_all_mcp_toolsets() -> List[McpToolset]:
         url=own_url,
         headers={"Authorization": f"Bearer {mcp_token}"},
     )
-    toolsets.append(McpToolset(connection_params=own_params))
+    # use_isolated_event_loop=True: vendored fix for the anyio CancelScope
+    # cross-task race (google/adk-python#5509). Each MCP op runs in a
+    # dedicated thread + isolated event loop so the cancel scope never
+    # crosses task boundaries.
+    toolsets.append(McpToolset(
+        connection_params=own_params,
+        use_isolated_event_loop=True,
+    ))
     logger.info(f"Business Analysis MCP URL: {own_url}")
 
     # Extra MCPs from CoStaff dashboard (e.g. costaff core MCP)
@@ -73,6 +80,7 @@ def load_all_mcp_toolsets() -> List[McpToolset]:
                 toolsets.append(McpToolset(
                     connection_params=_connection_params(entry),
                     tool_filter=tool_filter,
+                    use_isolated_event_loop=True,
                 ))
                 if tool_filter:
                     logger.info(f"Added extra MCP: {name} (filtered to {len(tool_filter)} tools: {tool_filter})")
