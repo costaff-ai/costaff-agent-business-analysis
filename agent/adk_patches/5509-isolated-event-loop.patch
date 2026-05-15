@@ -293,7 +293,7 @@ index c566c52746..a6ec6cbe39 100644
  
    def _get_auth_headers(
        self, readonly_context: Optional[ReadonlyContext] = None
-@@ -340,6 +358,50 @@ async def get_tools(
+@@ -340,6 +358,48 @@ async def get_tools(
      Returns:
          List[BaseTool]: A list of tools available under the specified context.
      """
@@ -336,8 +336,6 @@ index c566c52746..a6ec6cbe39 100644
 +            mcp_tool, readonly_context
 +        ):
 +          tools.append(mcp_tool)
-+      if self._use_mcp_resources:
-+        tools.append(LoadMcpResourceTool(mcp_toolset=self))
 +      if self._use_mcp_resources:
 +        tools.append(LoadMcpResourceTool(mcp_toolset=self))
 +      return tools
