@@ -25,7 +25,7 @@ any structured non-numerical text.
 Tool: read_result(filepath)
 ```
 
-`filepath` is relative to `/app/data/shared/` and **must include the source agent's project subdirectory**, e.g. `costaff-agent-coding/wine-svm/outputs/results.json` — never just `costaff-agent-coding/results.json`.
+`filepath` is relative to `/app/data/shared/` and **must include the source agent's project subdirectory**, e.g. `costaff-agent-coding/wine-svm/results.json` — never just `costaff-agent-coding/results.json` (no project subdir). The inner layout (whether the file sits at the project root or under an inner directory like `outputs/`) is decided by the source agent or the caller's spec — use the exact path the Manager handed you, do not infer.
 
 ### Step 2. Format as Markdown
 

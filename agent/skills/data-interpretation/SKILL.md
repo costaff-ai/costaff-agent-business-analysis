@@ -22,7 +22,7 @@ Tool: list_workspace(subdir)    — to discover available files first
 
 `read_file` does **NOT** exist. Use `read_result` for any non-CSV file.
 
-`filepath` is relative to `/app/data/shared/` and **must include the source agent's project subdirectory**, e.g. `costaff-agent-coding/wine-svm/outputs/results.json`. A path like `costaff-agent-coding/results.json` (no project subdir) is wrong — the coding agent never writes at its root.
+`filepath` is relative to `/app/data/shared/` and **must include the source agent's project subdirectory**, e.g. `costaff-agent-coding/wine-svm/results.json`. A path like `costaff-agent-coding/results.json` (no project subdir) is wrong — the coding agent never writes at its root. The inner layout (whether the file sits at the project root or under an inner directory like `outputs/`) is decided by the source agent or the caller's spec — use the exact path the Manager handed you, do not infer.
 
 ### Step 2. Analyse
 
