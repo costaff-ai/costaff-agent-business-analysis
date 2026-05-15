@@ -65,6 +65,18 @@ def load_all_mcp_toolsets() -> List[McpToolset]:
             return toolsets
 
         for name, entry in extra_config.items():
+            # BUSINESS_ANALYSIS_AGENT_MCP_URLS is auto-populated by the
+            # dashboard with the FULL MCP_SERVER_URLS map, which includes
+            # a self-referential "business-analysis" entry pointing at this
+            # agent's OWN MCP — already loaded above via own_params. Loading
+            # it again opens a redundant 2nd session to the same server
+            # (pure waste + extra cancel-scope-race surface). Skip it.
+            if name == "business-analysis":
+                logger.info(
+                    "Skipping self-referential 'business-analysis' extra MCP "
+                    "— own MCP already loaded via own_params (dedup)"
+                )
+                continue
             if isinstance(entry, dict) and not entry.get("enabled", True):
                 logger.info(f"Skipping disabled extra MCP: {name}")
                 continue
