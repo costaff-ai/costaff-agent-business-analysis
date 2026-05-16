@@ -6,12 +6,16 @@ logger = logging.getLogger(__name__)
 from google.adk.agents import LlmAgent
 
 from instruction import build_instruction
-from mcp_toolsets import load_all_mcp_toolsets
 from models import selected_model
 from skills import load_all_skills
+from tools import load_all_function_tools
 
-# Tools = MCP toolsets + Skill toolset
-tools = list(load_all_mcp_toolsets())
+# Tools = native httpx-backed function tools (BA's own + 4 shared
+# manager-core) + Skill toolset. NO McpToolset: the BA agent process
+# holds zero MCP streamable-http client, so the ADK/anyio CancelScope
+# cross-task race (google/adk-python#4454) cannot occur. The MCP servers
+# still run and hold all real logic — only the transport is httpx now.
+tools = list(load_all_function_tools())
 tools.append(load_all_skills())
 
 # Instruction (placeholders resolved here)
