@@ -4,21 +4,16 @@ from core import mcp
 import tools  # noqa: F401 — registers all @mcp.tool() decorators
 
 if __name__ == "__main__":
-    import uvicorn
-
-    from http_api import register_http_api
-
-    # Build the Starlette app explicitly (instead of mcp.run()) so we can
-    # mount the plain-HTTP tool shim alongside the MCP /mcp endpoint. The
-    # shim lets the BA agent call tools via httpx (no MCP client → no
-    # anyio cancel-scope race) while the MCP /mcp endpoint stays available
-    # for anything that still wants it.
-    app = mcp.streamable_http_app()
-    register_http_api(app)
-
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=int(os.getenv("MCP_BA_PORT", "8083")),
-        log_level="info",
-    )
+    # --- EXPERIMENT 2026-05-16: SSE transport race test -------------------
+    # Temporarily serve the deprecated SSE transport so we can empirically
+    # measure whether the anyio cancel-scope race (#4454) is specific to
+    # streamable-http or transport-agnostic. SSE is DEPRECATED upstream
+    # (MCP spec 2025-03-26, removal mid-2026) — this is a measurement only,
+    # NOT a production change. `git revert` restores the streamable-http +
+    # /api/tool shim setup (the verified race-free production solution).
+    #
+    # FastMCP binds host/port from its constructor (core.py:
+    # FastMCP("business-analysis-mcp", host="0.0.0.0", port=8083)).
+    # transport="sse" serves the SSE stream at /sse + POST /messages/.
+    mcp.run(transport="sse")
+    # --- end experiment --------------------------------------------------
