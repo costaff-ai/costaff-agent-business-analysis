@@ -1,7 +1,7 @@
 """MCP toolset loader for the BA agent — own MCP only, transport env-selectable.
 
 The agent connects to its OWN MCP server (costaff-mcp-business-analysis)
-via McpToolset. Transport is chosen by MCP_BA_TRANSPORT:
+via McpToolset. Transport is chosen by MCP_TRANSPORT:
 
   - "sse" (DEFAULT): empirically race-free under to_a2a()+ADK1.33. The
     streamable-http anyio CancelScope race (google/adk-python#4454) does
@@ -32,8 +32,8 @@ _HOST = os.getenv("MCP_BA_HOST", "costaff-mcp-business-analysis:8083")
 
 
 def load_all_mcp_toolsets() -> List[McpToolset]:
-    """Return [own-MCP McpToolset] with transport selected by MCP_BA_TRANSPORT."""
-    transport = os.getenv("MCP_BA_TRANSPORT", "sse").strip().lower()
+    """Return [own-MCP McpToolset] with transport selected by MCP_TRANSPORT."""
+    transport = os.getenv("MCP_TRANSPORT", "sse").strip().lower()
     mcp_token = os.getenv(
         "MCP_SECRET_KEY",
         "REDACTED",
