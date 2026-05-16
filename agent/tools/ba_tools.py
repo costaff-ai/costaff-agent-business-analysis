@@ -83,7 +83,7 @@ def generate_chart(
 
 def generate_distribution_plots(
     csv_path: str,
-    features: list,
+    features: list[str],
     output_subdir: str,
     include_boxplot: bool = True,
     bins: int = 30,
