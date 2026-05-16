@@ -1,96 +1,55 @@
-"""MCP toolset loader for the business-analysis agent.
+"""MCP toolset loader for the BA agent — own MCP only, transport env-selectable.
 
-Loads:
-    1. The agent's own MCP server (URL from MCP_BA_URL env var, defaults
-       to costaff-mcp-business-analysis:8083). Authorization header is
-       attached using MCP_SECRET_KEY.
-    2. Any extra MCP servers configured via BUSINESS_ANALYSIS_AGENT_MCP_URLS
-       (set by the CoStaff dashboard at deploy time).
+The agent connects to its OWN MCP server (costaff-mcp-business-analysis)
+via McpToolset. Transport is chosen by MCP_BA_TRANSPORT:
 
-Usage:
-    from mcp_toolsets import load_all_mcp_toolsets
-    toolsets = load_all_mcp_toolsets()  # list of McpToolset
+  - "sse" (DEFAULT): empirically race-free under to_a2a()+ADK1.33. The
+    streamable-http anyio CancelScope race (google/adk-python#4454) does
+    NOT occur on SSE (verified 2026-05-16). SSE is deprecated upstream
+    (MCP spec 2025-03-26) but is the transport Google's own multi-agent
+    ADK examples use.
+  - "streamable-http": the future standard; switch back here once ADK
+    fixes #4454. Currently races under to_a2a — do not use in prod yet.
+
+The 4 shared manager-core tools (send_message_now / add_task_comment /
+move_to_shared / list_data_files) are NOT loaded here — they go via the
+costaff-core HTTP shim (agent/tools/costaff_api.py). That keeps BA off a
+2nd MCP session and keeps DB/notifiers/tokens centralised in costaff-mcp.
 """
-import json
 import logging
 import os
 from typing import List
 
 from google.adk.tools.mcp_tool import McpToolset
-from google.adk.tools.mcp_tool.mcp_session_manager import StreamableHTTPServerParams
+from google.adk.tools.mcp_tool.mcp_session_manager import (
+    SseConnectionParams,
+    StreamableHTTPServerParams,
+)
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MCP_URL = "http://costaff-mcp-business-analysis:8083/mcp"
-
-
-def _connection_params(entry):
-    """Coerce an entry (string URL or dict) into StreamableHTTPServerParams."""
-    if isinstance(entry, str):
-        url, headers = entry, None
-    else:
-        url = entry.get("url", "")
-        headers = entry.get("headers") or None
-    if not url:
-        raise ValueError("MCP entry has no URL")
-    return StreamableHTTPServerParams(url=url, headers=headers)
+_HOST = os.getenv("MCP_BA_HOST", "costaff-mcp-business-analysis:8083")
 
 
 def load_all_mcp_toolsets() -> List[McpToolset]:
-    """Build the agent's MCP toolset list from env configuration."""
-    toolsets: List[McpToolset] = []
-
-    # Own MCP — always connected, with bearer auth
-    own_url = os.getenv("MCP_BA_URL", DEFAULT_MCP_URL)
+    """Return [own-MCP McpToolset] with transport selected by MCP_BA_TRANSPORT."""
+    transport = os.getenv("MCP_BA_TRANSPORT", "sse").strip().lower()
     mcp_token = os.getenv(
         "MCP_SECRET_KEY",
         "REDACTED",
     )
-    own_params = StreamableHTTPServerParams(
-        url=own_url,
-        headers={"Authorization": f"Bearer {mcp_token}"},
-    )
-    toolsets.append(McpToolset(connection_params=own_params))
-    logger.info(f"Business Analysis MCP URL: {own_url}")
+    headers = {"Authorization": f"Bearer {mcp_token}"} if mcp_token else {}
 
-    # Extra MCPs from CoStaff dashboard (e.g. costaff core MCP)
-    raw_extra = os.getenv("BUSINESS_ANALYSIS_AGENT_MCP_URLS", "")
-    if raw_extra:
-        try:
-            extra_config = json.loads(raw_extra)
-        except json.JSONDecodeError:
-            logger.error(
-                "BUSINESS_ANALYSIS_AGENT_MCP_URLS is not valid JSON, skipping extra MCPs"
-            )
-            return toolsets
+    if transport == "streamable-http":
+        url = os.getenv("MCP_BA_URL", f"http://{_HOST}/mcp")
+        params = StreamableHTTPServerParams(url=url, headers=headers)
+        logger.warning(
+            f"BA MCP transport=streamable-http ({url}) — races under "
+            f"to_a2a (#4454). Only use after ADK fixes it."
+        )
+    else:  # default: sse
+        url = os.getenv("MCP_BA_SSE_URL", f"http://{_HOST}/sse")
+        params = SseConnectionParams(url=url, headers=headers)
+        logger.info(f"BA MCP transport=sse ({url}) — race-free under to_a2a")
 
-        for name, entry in extra_config.items():
-            # BUSINESS_ANALYSIS_AGENT_MCP_URLS is auto-populated by the
-            # dashboard with the FULL MCP_SERVER_URLS map, which includes
-            # a self-referential "business-analysis" entry pointing at this
-            # agent's OWN MCP — already loaded above via own_params. Loading
-            # it again opens a redundant 2nd session to the same server
-            # (pure waste + extra cancel-scope-race surface). Skip it.
-            if name == "business-analysis":
-                logger.info(
-                    "Skipping self-referential 'business-analysis' extra MCP "
-                    "— own MCP already loaded via own_params (dedup)"
-                )
-                continue
-            if isinstance(entry, dict) and not entry.get("enabled", True):
-                logger.info(f"Skipping disabled extra MCP: {name}")
-                continue
-            tool_filter = entry.get("tool_filter") if isinstance(entry, dict) else None
-            try:
-                toolsets.append(McpToolset(
-                    connection_params=_connection_params(entry),
-                    tool_filter=tool_filter,
-                ))
-                if tool_filter:
-                    logger.info(f"Added extra MCP: {name} (filtered to {len(tool_filter)} tools: {tool_filter})")
-                else:
-                    logger.info(f"Added extra MCP: {name} (no filter — all tools imported)")
-            except Exception as e:
-                logger.error(f"Failed to load extra MCP '{name}': {e}")
-
-    return toolsets
+    return [McpToolset(connection_params=params)]
