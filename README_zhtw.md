@@ -111,13 +111,15 @@ docker compose up -d --build
 
 Agent 將在 `http://localhost:8081` 提供服務。
 
-### 透過 CoStaff 平台部署
+### 透過 CoStaff 平台部署（建議）
 
 ```bash
-cst agent deploy --local /path/to/costaff-agent-business-analysis
+costaff agent add business-analysis --github https://github.com/costaff-ai/costaff-agent-business-analysis
 ```
 
-CoStaff 會讀取 `costaff.agent.json`，自動建立容器、註冊 Agent，並接入整個生態系。
+CLI 會自動 clone repo、build agent + MCP 容器、把 agent 註冊進 `config.json`、串接共享工作區網路；`GOOGLE_API_KEY`（及必要密鑰）會在 `add` 時提示輸入。
+
+**接線模式 — 此 agent 請勿加 `--enable-transfer`。** 它以 **AgentTool**（預設、穩定契約）註冊：Manager 像呼叫 function 一樣呼叫它並取得乾淨的文字結果。`--enable-transfer` **僅**用於 sub-agent 必須接收**多模態圖片輸入**的 agent — 它會把**整個** Manager 切換成 ADK transfer 模式並帶上 session 歷史（見 `costaff-agent-nutrition`）。本 agent 為純文字任務型，維持預設即正確且為建議做法。
 
 ---
 

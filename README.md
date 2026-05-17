@@ -111,13 +111,15 @@ docker compose up -d --build
 
 The agent will be available at `http://localhost:8081`.
 
-### Via CoStaff Platform
+### Via CoStaff Platform (recommended)
 
 ```bash
-cst agent deploy --local /path/to/costaff-agent-business-analysis
+costaff agent add business-analysis --github https://github.com/costaff-ai/costaff-agent-business-analysis
 ```
 
-CoStaff reads `costaff.agent.json`, builds and starts the containers, registers the agent, and wires it into the ecosystem automatically.
+The CLI clones the repo, builds the agent + MCP containers, registers the agent in `config.json`, and wires it into the shared workspace network automatically. `GOOGLE_API_KEY` (and any required secret) is prompted during `add`.
+
+**Wiring mode — do NOT pass `--enable-transfer` for this agent.** It is registered as an **AgentTool** (the default, stable contract): the Manager calls it like a function and receives a clean text result. `--enable-transfer` exists *only* for agents whose sub-agent must receive **multimodal image input** — it switches the *entire* Manager into ADK transfer mode and carries session history (see `costaff-agent-nutrition`). This is a text-task agent, so the default is correct and recommended.
 
 ---
 
