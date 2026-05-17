@@ -11,5 +11,5 @@ if __name__ == "__main__":
     # transport Google's own multi-agent ADK examples use; keep
     # MCP_TRANSPORT=streamable-http as the switch-back path for when
     # ADK fixes #4454. FastMCP binds host/port from its constructor.
-    transport = os.getenv("MCP_TRANSPORT", "sse")
+    transport = os.getenv("MCP_TRANSPORT", "streamable-http")
     mcp.run(transport=transport)

@@ -33,7 +33,7 @@ _HOST = os.getenv("MCP_BA_HOST", "costaff-mcp-business-analysis:8083")
 
 def load_all_mcp_toolsets() -> List[McpToolset]:
     """Return [own-MCP McpToolset] with transport selected by MCP_TRANSPORT."""
-    transport = os.getenv("MCP_TRANSPORT", "sse").strip().lower()
+    transport = os.getenv("MCP_TRANSPORT", "streamable-http").strip().lower()
     mcp_token = os.getenv(
         "MCP_SECRET_KEY",
         "REDACTED",
