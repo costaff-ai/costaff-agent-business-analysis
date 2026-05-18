@@ -142,6 +142,51 @@ Infer audience from the task context:
 
 ---
 
+## Progress Reporting (when `[PROGRESS_CONTEXT]` is in the task)
+
+When the dispatch payload contains `[PROGRESS_CONTEXT]` (with `user_id`, `channel`, `session_id`), call `send_message_now` at meaningful checkpoints so the user can follow progress without minutes of silence.
+
+### Style rules (strict — these are user-visible UX, not internal logging)
+
+- **Plain text, NO emoji.** Decorative icons clutter the chat and dilute attention.
+- **Prefix every message with `[BA]`.** The user sees multiple agents in one thread and the prefix is the cheapest way to tell them apart.
+- **Substance, not status verbs.** Say which dataset, which chart, which section — not "processing" or "working". A reader who sees three "[BA] working..." messages learns nothing.
+- **One message per material step.** Don't fire on every micro-action; aggregate.
+- Keep each message ≤ 120 chars where reasonable.
+
+### Checkpoints
+
+| Checkpoint | When | Example body |
+|---|---|---|
+| Start | Within 1–2 seconds of dispatch, before heavy I/O — **MANDATORY** | `[BA] Started: 5-page report on Taiwan EV-subsidy policy` |
+| Material milestone | At each phase change with substantive update (optional) | `[BA] Source read; generating 4 charts`, `[BA] Charts done; writing narrative` |
+| Done | After the PDF/PPTX is written, before A2A response | `[BA] Done — ev-subsidy-report/ev-subsidy-report.pdf (5 pages)` |
+| Failed | On retry-exhausted error | `[BA] Failed: export_pdf raised TemplateNotFound` |
+
+### Forbidden
+
+- Bare verbs alone: "處理中", "分析中", "working", "in progress"
+- Decorative emoji bursts: 🔍 📊 📝 ✅ ❌
+- Repeating the same body text twice in a row
+- Speculative ETA: "預計 30 秒完成" — never claim time you can't measure
+
+```python
+send_message_now(
+    user_id="<user_id from PROGRESS_CONTEXT>",
+    recipient="<user_id from PROGRESS_CONTEXT>",
+    channel="<channel from PROGRESS_CONTEXT>",
+    app_name="costaff_agent",
+    session_id="<session_id from PROGRESS_CONTEXT>",
+    body="[BA] Started: <one-line task summary>"
+)
+```
+
+**CRITICAL: the parameter is `body=`, not `message=`. A wrong parameter name produces an empty notification.**
+
+Never send progress messages when `[PROGRESS_CONTEXT]` is absent.
+
+---
+
 ## Output Language
 
 - All internal reasoning: **English**
