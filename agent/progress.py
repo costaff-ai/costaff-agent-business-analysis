@@ -1,27 +1,37 @@
-"""Code-driven live progress panel for the A2A-served BA agent.
+"""Code-driven live progress panel for any A2A-served leaf agent.
 
-The Manager-side before_tool_callback (costaff core) deterministically
-appends a real [PROGRESS_CONTEXT] block (user_id / channel /
-session_id=task_<id>) into BA's request, so it arrives in
-llm_request.contents. This module turns that into the user's single
-live Telegram panel WITHOUT any LLM involvement:
+Canonical, self-contained, drop-in. The Manager-side before_tool_callback
+(costaff core) deterministically appends a real [PROGRESS_CONTEXT] block
+(user_id / channel / session_id=task_<id>) into this agent's request, so
+it arrives in llm_request.contents. This module turns that into the
+user's single live Telegram panel WITHOUT any LLM involvement:
 
   before_model_callback : parse the block once → callback state
   before_tool_callback  : each real tool starts  → report_step "doing"
   after_tool_callback   : each real tool finishes → "done" / "failed"
 
-Core panel_finalize (executor) flips the header to Done/Failed when the
-task ends. Every callback is fail-safe: it never raises and always
-returns None, so it can never skip a model/tool call.
+It posts directly to the core report_step shim (no dependency on this
+repo's tools/ package), so the SAME file works in every agent. Core's
+panel_finalize (executor) flips the header to Done/Failed at task end,
+and a core ticker animates the breathing dots between tool events.
+
+Every callback is fail-safe: never raises, always returns None, so it
+can never skip a model/tool call.
 """
 import asyncio
 import logging
+import os
 import re
 
-from tools._http import call_shim
-from tools.costaff_api import _BASE
+import httpx
 
 logger = logging.getLogger("progress")
+
+_BASE = os.getenv(
+    "COSTAFF_CORE_API_URL", "http://costaff-mcp-costaff:8081"
+).rstrip("/")
+_SECRET = os.getenv("MCP_SECRET_KEY", "").strip()
+_TIMEOUT = float(os.getenv("COSTAFF_TOOL_HTTP_TIMEOUT", "30"))
 
 _RE = {
     "user_id": re.compile(r"^\s*user_id\s*=\s*(.+?)\s*$", re.M),
@@ -30,8 +40,8 @@ _RE = {
 }
 
 # Plumbing the user should not see as work lines (the 4 shared core
-# tools + report_step itself). BA's real verbs (generate_chart,
-# export_pdf, create_html_report, ...) are NOT in this set → each shows.
+# tools + report_step itself). An agent's real verbs are NOT in this set
+# → each shows. Harmless for agents that don't have these tools.
 _PLUMBING = {
     "send_message_now",
     "add_task_comment",
@@ -65,20 +75,30 @@ def _pc_from_state(tool_context):
         return None
 
 
-async def _report(pc, step, status):
+def _post_report(pc, step, status):
+    headers = {"Authorization": f"Bearer {_SECRET}"} if _SECRET else {}
     try:
-        await asyncio.to_thread(
-            call_shim,
-            _BASE,
-            "report_step",
-            session_id=pc["session_id"],
-            step=step,
-            status=status,
-            channel=pc["channel"],
-            user_id=pc["user_id"],
+        httpx.post(
+            f"{_BASE}/api/tool/report_step",
+            json={
+                "session_id": pc["session_id"],
+                "step": step,
+                "status": status,
+                "channel": pc["channel"],
+                "user_id": pc["user_id"],
+            },
+            headers=headers,
+            timeout=_TIMEOUT,
         )
     except Exception:
-        logger.info("[panel] report_step failed", exc_info=True)
+        logger.info("[panel] report_step post failed", exc_info=True)
+
+
+async def _report(pc, step, status):
+    try:
+        await asyncio.to_thread(_post_report, pc, step, status)
+    except Exception:
+        logger.info("[panel] report failed", exc_info=True)
 
 
 async def before_model_callback(callback_context, llm_request):
