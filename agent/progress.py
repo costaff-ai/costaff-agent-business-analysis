@@ -47,32 +47,27 @@ async def before_model_callback(callback_context, llm_request):
         if len(_SEEN) > 512:
             _SEEN.clear()
 
+        # ONLY contents — system_instruction is BA's own system.md, which
+        # teaches this feature using the literal token "[PROGRESS_CONTEXT]"
+        # and is therefore a guaranteed false positive every run.
         contents = getattr(llm_request, "contents", None) or []
         ctext = "\n".join(_txt(c) for c in contents)
-        cfg = getattr(llm_request, "config", None)
-        sysi = _txt(getattr(cfg, "system_instruction", None)) if cfg is not None else ""
 
-        where = []
         if "[PROGRESS_CONTEXT]" in ctext:
-            where.append("contents")
-        if "[PROGRESS_CONTEXT]" in sysi:
-            where.append("system_instruction")
-
-        if where:
-            blob = ctext + "\n" + sysi
             g = {}
             for k, rx in _RE.items():
-                m = rx.search(blob)
+                m = rx.search(ctext)
                 g[k] = m.group(1).strip() if m else None
+            real = bool(g["session_id"] and g["session_id"].startswith("task_"))
             logger.info(
-                f"[pm-spike] PROGRESS_CONTEXT FOUND in {where} → "
-                f"session_id={g['session_id']!r} channel={g['channel']!r} "
-                f"user_id={g['user_id']!r}"
+                f"[pm-spike] PROGRESS_CONTEXT FOUND in contents "
+                f"(real={real}) → session_id={g['session_id']!r} "
+                f"channel={g['channel']!r} user_id={g['user_id']!r}"
             )
         else:
             logger.info(
-                f"[pm-spike] PROGRESS_CONTEXT NOT in llm_request "
-                f"(contents_len={len(ctext)} sysi_len={len(sysi)})"
+                f"[pm-spike] PROGRESS_CONTEXT NOT in contents "
+                f"(contents_len={len(ctext)})"
             )
     except Exception:
         logger.info("[pm-spike] failed", exc_info=True)
