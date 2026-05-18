@@ -10,11 +10,6 @@ from mcp_toolsets import load_all_mcp_toolsets
 from models import selected_model
 from skills import load_all_skills
 from tools import load_costaff_api_tools
-from progress import (
-    before_agent_callback,
-    before_tool_callback,
-    after_tool_callback,
-)
 
 # Tools =
 #   - BA's own MCP via McpToolset, transport SSE by default (race-free
@@ -42,15 +37,11 @@ business_analysis_agent = LlmAgent(
         "Does not perform computation or modelling; focuses solely on presentation and insight."
     ),
     instruction=instruction,
+    # Live progress panel is driven by the LLM calling the `report_step`
+    # tool (in load_costaff_api_tools) per its system.md instruction —
+    # automatic ADK callbacks can't target the panel across the A2A
+    # boundary (verified: A2A sub-agent gets a fresh opaque session).
     tools=tools,
-    # Live progress panel: before_agent parses PROGRESS_CONTEXT once into
-    # session state (tool-callback user_content is unreliable for an A2A
-    # sub-agent); tool callbacks read it from state and report each tool
-    # call to costaff-core, which edits one Telegram message in place.
-    # Fail-safe (callbacks return None / never raise).
-    before_agent_callback=before_agent_callback,
-    before_tool_callback=before_tool_callback,
-    after_tool_callback=after_tool_callback,
     sub_agents=[],
     # Leaf agent: A2A response auto-returns control to the manager.
     # Both flags + empty sub_agents → ADK uses SingleFlow and omits the

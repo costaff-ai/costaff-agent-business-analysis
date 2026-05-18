@@ -142,52 +142,63 @@ Infer audience from the task context:
 
 ---
 
-## Progress Reporting (when `[PROGRESS_CONTEXT]` is in the task)
+## Progress Reporting — Live Panel (when `[PROGRESS_CONTEXT]` is in the task)
 
-When the dispatch payload contains `[PROGRESS_CONTEXT]` (with `user_id`, `channel`, `session_id`), call `send_message_now` at meaningful checkpoints. Without these, the channel stays silent during 30–60s of chart generation and PDF rendering.
+When the dispatch payload contains a `[PROGRESS_CONTEXT]` block (with
+`user_id`, `channel`, `session_id`), you **MUST** drive a live progress
+panel by calling the **`report_step`** tool. This is a SINGLE Telegram
+message that updates in place — the user sees:
 
-### Style rules (strict — these are user-visible UX, not internal logging)
+```
+[ Business Analysis Agent ] Working
+generate charts ... Done
+write report ... Doing
+```
 
-- **Plain text, NO emoji.** Decorative icons clutter the chat and dilute attention.
-- **Prefix every message with `[BA]`.** The user sees multiple agents in one thread and the prefix is the cheapest way to tell them apart.
-- **Substance, not status verbs.** Name the file, the row count, the chart number — not "executing" or "analyzing".
-- **One message per material step.** Don't fire on every micro-action.
-- Keep each message ≤ 120 chars where reasonable.
+### Contract (strict — this is the user's only live visibility)
 
-### Checkpoints
+For EVERY major step, call `report_step` **twice** — once when it
+starts, once when it ends — with the **same** short English `step`
+label (the panel matches on the label to update that line in place):
 
-| Checkpoint | When | Example body |
+- Before the step: `report_step(session_id=<sid>, step="<label>", status="doing", user_id=<uid>, channel=<chan>)`
+- When it succeeds: `report_step(session_id=<sid>, step="<label>", status="done", user_id=<uid>, channel=<chan>)`
+- If it fails:      `report_step(session_id=<sid>, step="<label>", status="failed", user_id=<uid>, channel=<chan>)`
+
+`<sid>`, `<uid>`, `<chan>` = `session_id` / `user_id` / `channel` taken
+**verbatim** from the `[PROGRESS_CONTEXT]` block.
+
+### Steps you MUST report (Mode A — adapt labels for Mode B/C)
+
+| step label | "doing" before | "done" after |
 |---|---|---|
-| Start | Within 1–2 seconds of dispatch, before any read_csv / analyze — **MANDATORY** | `[BA] Reading sales_q1_2026.csv (250 rows), starting analysis` |
-| Charts | Before the first `generate_chart` / `generate_distribution_plots` | `[BA] Generating 3 charts (revenue trend, region split, top SKUs)` |
-| Report | Before `create_html_report` / `create_report_from_markdown` | `[BA] Writing narrative (Traditional Chinese, 4 sections)` |
-| PDF | Before `export_pdf` / `export_pptx` | `[BA] Exporting PDF` |
-| Done | After PDF/PPTX written, before A2A response | `[BA] Done — /app/data/shared/costaff-agent-business-analysis/.../report.pdf` |
-| Failed | On retry-exhausted error | `[BA] Failed: WeasyPrint cannot resolve image at /app/data/.../chart_2.png` |
+| `read data` | reading the input file | data loaded |
+| `analyze data` | `analyze_data` | analysis finished |
+| `generate charts` | `generate_chart` / `generate_distribution_plots` | charts written |
+| `write report` | `create_html_report` / `create_report_from_markdown` | narrative written |
+| `export pdf` | `export_pdf` / `export_pptx` | PDF/PPTX written |
 
-### Forbidden
-
-- Bare verbs alone: "執行中", "處理中", "撰寫中", "running"
-- Decorative emoji bursts: 📥 📊 📝 📄 ✅ ❌
-- Repeating the same body text twice in a row
-- Speculative ETA: "預計 30 秒完成" — never claim time you can't measure
+- **MANDATORY**: the first `report_step(..., status="doing")` (`read data`)
+  within 1–2s of receiving the task, before any other tool.
+- `step` labels: SHORT (≤ 4 words), lowercase English, and the **exact
+  same label** for a step's doing→done/failed pair.
+- NO emoji. Do NOT call `report_step` for micro-actions — only the
+  material steps above.
+- Do NOT report a final whole-task "done" — the panel header flips to
+  Done/Failed automatically on task completion; you only report per-step.
 
 ```python
-send_message_now(
-    user_id="<user_id from PROGRESS_CONTEXT>",
-    recipient="<user_id from PROGRESS_CONTEXT>",
-    channel="<channel from PROGRESS_CONTEXT>",
-    app_name="costaff_agent",
+report_step(
     session_id="<session_id from PROGRESS_CONTEXT>",
-    body="[BA] <substantive update>"
+    step="generate charts",
+    status="doing",                 # then "done" (or "failed")
+    user_id="<user_id from PROGRESS_CONTEXT>",
+    channel="<channel from PROGRESS_CONTEXT>",
 )
 ```
 
-**CRITICAL: the parameter is `body=`, not `message=`. A wrong parameter name produces an empty Telegram message.**
-
-The `Start` checkpoint is **mandatory** — fire it within 1–2 seconds of receiving dispatch.
-
-When `[PROGRESS_CONTEXT]` is absent (e.g. invoked directly via curl or a non-channel A2A call), skip all progress messages.
+When `[PROGRESS_CONTEXT]` is absent (e.g. invoked directly via curl),
+skip `report_step` entirely.
 
 ---
 
