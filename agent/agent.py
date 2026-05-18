@@ -10,7 +10,11 @@ from mcp_toolsets import load_all_mcp_toolsets
 from models import selected_model
 from skills import load_all_skills
 from tools import load_costaff_api_tools
-from progress import before_model_callback  # SPIKE: observability only
+from progress import (
+    before_model_callback,
+    before_tool_callback,
+    after_tool_callback,
+)
 
 # Tools =
 #   - BA's own MCP via McpToolset, transport SSE by default (race-free
@@ -38,10 +42,12 @@ business_analysis_agent = LlmAgent(
         "Does not perform computation or modelling; focuses solely on presentation and insight."
     ),
     instruction=instruction,
-    # SPIKE (observability only, returns None): does the model's actual
-    # LlmRequest contain PROGRESS_CONTEXT? If yes, a reliable automatic
-    # panel is achievable (before_model parse → state → tool callbacks).
+    # Code-driven live panel: before_model parses the Manager-injected
+    # PROGRESS_CONTEXT into callback state; tool callbacks report each
+    # real tool to the single Telegram panel. No LLM involvement.
     before_model_callback=before_model_callback,
+    before_tool_callback=before_tool_callback,
+    after_tool_callback=after_tool_callback,
     tools=tools,
     sub_agents=[],
     # Leaf agent: A2A response auto-returns control to the manager.

@@ -66,34 +66,12 @@ def list_data_files(path: str, pattern: str = None) -> str:
     return call_shim(_BASE, "list_data_files", path=path, pattern=pattern)
 
 
-def report_step(
-    session_id: str,
-    step: str,
-    status: str,
-    agent: str = "business_analysis_agent",
-    channel: str = "telegram",
-    user_id: str = "",
-) -> str:
-    """Report ONE work step to the user's live progress panel (a single
-    Telegram message that updates in place).
-
-    Call this for every major step of the task:
-      - when the step STARTS:  report_step(session_id=..., step="生成圖表", status="doing", ...)
-      - when it FINISHES:      report_step(session_id=..., step="生成圖表", status="done", ...)
-      - if it FAILED:          report_step(session_id=..., step="生成圖表", status="failed", ...)
-
-    session_id / channel / user_id come from the task's [PROGRESS_CONTEXT]
-    block. `step` is a short human label (same label for its doing→done
-    pair). status: "doing" | "done" | "failed".
-    """
-    return call_shim(
-        _BASE, "report_step",
-        session_id=session_id, step=step, status=status,
-        agent=agent, channel=channel, user_id=user_id,
-    )
-
-
 def load_costaff_api_tools() -> list:
-    """Return the shared manager-core tools as native ADK function tools."""
+    """Return the shared manager-core tools as native ADK function tools.
+
+    The live panel is driven by code (agent/progress.py tool callbacks
+    call the report_step shim directly), NOT by the LLM — so report_step
+    is intentionally NOT exposed here.
+    """
     return [send_message_now, add_task_comment, move_to_shared,
-            list_data_files, report_step]
+            list_data_files]
