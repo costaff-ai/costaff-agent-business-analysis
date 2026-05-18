@@ -10,7 +10,11 @@ from mcp_toolsets import load_all_mcp_toolsets
 from models import selected_model
 from skills import load_all_skills
 from tools import load_costaff_api_tools
-from progress import before_tool_callback, after_tool_callback
+from progress import (
+    before_agent_callback,
+    before_tool_callback,
+    after_tool_callback,
+)
 
 # Tools =
 #   - BA's own MCP via McpToolset, transport SSE by default (race-free
@@ -39,9 +43,12 @@ business_analysis_agent = LlmAgent(
     ),
     instruction=instruction,
     tools=tools,
-    # Live progress panel: auto-report every tool call to costaff-core,
-    # which edits one Telegram message in place. Fail-safe (callbacks
-    # return None / never raise) so they cannot affect tool execution.
+    # Live progress panel: before_agent parses PROGRESS_CONTEXT once into
+    # session state (tool-callback user_content is unreliable for an A2A
+    # sub-agent); tool callbacks read it from state and report each tool
+    # call to costaff-core, which edits one Telegram message in place.
+    # Fail-safe (callbacks return None / never raise).
+    before_agent_callback=before_agent_callback,
     before_tool_callback=before_tool_callback,
     after_tool_callback=after_tool_callback,
     sub_agents=[],

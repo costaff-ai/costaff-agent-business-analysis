@@ -1,27 +1,31 @@
-"""Live progress panel hooks — ADK before/after tool callbacks.
+"""Live progress panel hooks — ADK callbacks (1.33).
 
-Every tool the agent invokes is auto-reported to the costaff-core
-`/api/progress_step` endpoint, which maintains a single self-updating
-Telegram message ([ Business Analysis Agent ] Working / tool ... Doing).
+Canonical ADK pattern (per official docs/samples): a tool callback's own
+`user_content` is unreliable for an A2A/AgentTool-invoked sub-agent (it
+is the latest model/tool turn, not the originating prompt). So we parse
+the PROGRESS_CONTEXT block ONCE in `before_agent_callback` — which fires
+at agent entry with the real input content — stash it in session
+`state`, and the tool callbacks read it back from `tool_context.state`.
 
-CONTRACT (critical): these callbacks MUST return None and MUST NOT
-raise. ADK 1.33 treats a truthy before_tool_callback return as "skip the
-tool, use this response" and a truthy after_tool_callback return as
-"replace the tool response". A panel failure can never affect tool
-execution — everything is wrapped, returns None.
+Every tool the agent invokes is then auto-reported to costaff-core
+`/api/progress_step`, which edits one Telegram message in place.
+
+CONTRACT (critical): all callbacks MUST return None and MUST NOT raise.
+ADK 1.33 treats a truthy before_tool_callback return as "skip the tool"
+and a truthy after_tool_callback return as "replace the response". A
+panel failure can never affect tool execution — everything is wrapped.
 """
 import logging
 import os
 import re
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("progress")
 
 _BASE = os.getenv("COSTAFF_CORE_API_URL", "http://costaff-mcp-costaff:8081")
 _SECRET = os.getenv("MCP_SECRET_KEY", "").strip()
 _AGENT = "business_analysis_agent"
+_STATE_KEY = "_progress_ctx"
 
-# invocation_id -> {user_id, channel, session_id} | None  (parse PROGRESS_CONTEXT once)
-_PCTX: dict = {}
 _RE = {
     "user_id": re.compile(r"^\s*user_id\s*=\s*(.+?)\s*$", re.M),
     "channel": re.compile(r"^\s*channel\s*=\s*(.+?)\s*$", re.M),
@@ -41,29 +45,45 @@ def _content_text(uc) -> str:
         return ""
 
 
-def _progress_ctx(tool_context):
+def _parse_pctx(text: str):
+    if not text or "[PROGRESS_CONTEXT]" not in text:
+        return None
+    vals = {}
+    for k, rx in _RE.items():
+        m = rx.search(text)
+        if m:
+            vals[k] = m.group(1).strip()
+    if not vals.get("session_id"):
+        return None
+    return {
+        "user_id": vals.get("user_id", ""),
+        "channel": vals.get("channel", ""),
+        "session_id": vals["session_id"],
+    }
+
+
+async def before_agent_callback(callback_context):
+    """Parse PROGRESS_CONTEXT from the agent's real input once and stash
+    it in session state for the tool callbacks. One INFO line per task
+    so the path is observable without per-tool log spam."""
     try:
-        inv = getattr(tool_context, "invocation_id", None) or ""
-        if inv in _PCTX:
-            return _PCTX[inv]
-        text = _content_text(getattr(tool_context, "user_content", None))
-        ctx = None
-        if "[PROGRESS_CONTEXT]" in text:
-            vals = {}
-            for k, rx in _RE.items():
-                m = rx.search(text)
-                if m:
-                    vals[k] = m.group(1).strip()
-            if vals.get("session_id"):
-                ctx = {
-                    "user_id": vals.get("user_id", ""),
-                    "channel": vals.get("channel", ""),
-                    "session_id": vals["session_id"],
-                }
-        if len(_PCTX) > 256:
-            _PCTX.clear()
-        _PCTX[inv] = ctx
-        return ctx
+        ctx = _parse_pctx(_content_text(getattr(callback_context, "user_content", None)))
+        if ctx:
+            callback_context.state[_STATE_KEY] = ctx
+            logger.info(
+                f"[progress] ctx resolved: channel={ctx['channel']} "
+                f"session={ctx['session_id']}"
+            )
+        else:
+            logger.info("[progress] no PROGRESS_CONTEXT in agent input — panel off")
+    except Exception:
+        logger.debug("[progress] before_agent swallowed", exc_info=True)
+    return None
+
+
+def _ctx_from_state(tool_context):
+    try:
+        return tool_context.state.get(_STATE_KEY)
     except Exception:
         return None
 
@@ -97,7 +117,7 @@ def _ok_from_response(resp) -> bool:
 
 async def before_tool_callback(tool, args, tool_context):
     try:
-        ctx = _progress_ctx(tool_context)
+        ctx = _ctx_from_state(tool_context)
         if ctx:
             await _post({
                 "action": "step", "key": ctx["session_id"],
@@ -106,13 +126,13 @@ async def before_tool_callback(tool, args, tool_context):
                 "tool": _tool_name(tool), "phase": "start", "ok": True,
             })
     except Exception:
-        logger.debug("[progress] before swallowed", exc_info=True)
+        logger.debug("[progress] before_tool swallowed", exc_info=True)
     return None  # MUST be None — never skip/alter the tool
 
 
 async def after_tool_callback(tool, args, tool_context, tool_response):
     try:
-        ctx = _progress_ctx(tool_context)
+        ctx = _ctx_from_state(tool_context)
         if ctx:
             await _post({
                 "action": "step", "key": ctx["session_id"],
@@ -122,5 +142,5 @@ async def after_tool_callback(tool, args, tool_context, tool_response):
                 "ok": _ok_from_response(tool_response),
             })
     except Exception:
-        logger.debug("[progress] after swallowed", exc_info=True)
+        logger.debug("[progress] after_tool swallowed", exc_info=True)
     return None  # MUST be None — never replace the tool response
