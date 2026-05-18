@@ -67,6 +67,22 @@ async def before_agent_callback(callback_context):
     it in session state for the tool callbacks. One INFO line per task
     so the path is observable without per-tool log spam."""
     try:
+        # SPIKE observability: dump the ids ADK gives this A2A sub-agent so
+        # we can check whether core can map BA's session back to the task
+        # (the principled design needs no PROGRESS_CONTEXT, just a
+        # core-mappable session id). One line per task; fail-safe.
+        try:
+            sess = getattr(callback_context, "session", None)
+            sid = getattr(sess, "id", None)
+            inv = getattr(callback_context, "invocation_id", None)
+            uid = getattr(callback_context, "user_id", None)
+            logger.info(
+                f"[progress-spike] session.id={sid!r} invocation_id={inv!r} "
+                f"user_id={uid!r}"
+            )
+        except Exception:
+            logger.info("[progress-spike] id dump failed", exc_info=True)
+
         ctx = _parse_pctx(_content_text(getattr(callback_context, "user_content", None)))
         if ctx:
             callback_context.state[_STATE_KEY] = ctx
