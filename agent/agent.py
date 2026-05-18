@@ -10,6 +10,7 @@ from mcp_toolsets import load_all_mcp_toolsets
 from models import selected_model
 from skills import load_all_skills
 from tools import load_costaff_api_tools
+from progress import before_model_callback  # SPIKE: observability only
 
 # Tools =
 #   - BA's own MCP via McpToolset, transport SSE by default (race-free
@@ -37,10 +38,10 @@ business_analysis_agent = LlmAgent(
         "Does not perform computation or modelling; focuses solely on presentation and insight."
     ),
     instruction=instruction,
-    # Live progress panel is driven by the LLM calling the `report_step`
-    # tool (in load_costaff_api_tools) per its system.md instruction —
-    # automatic ADK callbacks can't target the panel across the A2A
-    # boundary (verified: A2A sub-agent gets a fresh opaque session).
+    # SPIKE (observability only, returns None): does the model's actual
+    # LlmRequest contain PROGRESS_CONTEXT? If yes, a reliable automatic
+    # panel is achievable (before_model parse → state → tool callbacks).
+    before_model_callback=before_model_callback,
     tools=tools,
     sub_agents=[],
     # Leaf agent: A2A response auto-returns control to the manager.
