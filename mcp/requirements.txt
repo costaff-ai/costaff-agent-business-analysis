@@ -1,7 +1,7 @@
-mcp[cli]
-matplotlib
-numpy
-pandas
-weasyprint
-markdown
-python-pptx
+mcp[cli]>=1.9.4
+matplotlib>=3.9.2
+numpy>=2.1.2
+pandas>=2.2.3
+weasyprint>=63.0
+markdown>=3.7
+python-pptx>=1.0.2
