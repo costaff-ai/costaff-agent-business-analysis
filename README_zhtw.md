@@ -61,7 +61,7 @@ Business Analysis Agent  ──►  MCP Business Analysis Server  ──►  圖
 - **CSV 支援** — 透過 pandas 直接讀取 CSV 檔案，不只限於 JSON
 - **分析敘事** — 為每張圖表和指標撰寫 1–2 句洞察說明
 - **PDF 匯出** — 附有嵌入式圖表的完整 PDF 報告
-- **PowerPoint 匯出** — 深色主題 PPTX 投影片，可直接拿去開會
+- **PowerPoint 匯出** — 樣板驅動的 `.pptx` 投影片。九種版型(title / section / content / image / two_column / quote / kpi / chart / closing)、三套主題(dark / light / corporate)綁定真正的 Office 色票,圖表是**原生可編輯 PowerPoint chart**,客戶拿到 PPT 可以接著改數據
 - **受眾語言適配** — 根據情境調整語言深度（技術 vs. 業務受眾）
 - **A2A 相容** — 提供 `/.well-known/agent-card.json` 健康檢查端點
 - **動態 MCP 支援** — 可透過 CoStaff Dashboard 在不重新部署的情況下動態新增 MCP Server
@@ -153,11 +153,33 @@ CLI 會自動 clone repo、build agent + MCP 容器、把 agent 註冊進 `confi
 | `generate_chart(...)` | 生成 PNG 圖表（10+ 種類型） |
 | `create_html_report(...)` | 組合含有指標、圖表與敘事的 HTML 報告 |
 | `export_pdf(...)` | 透過 WeasyPrint 將 HTML 報告轉換為 PDF |
-| `export_pptx(...)` | 生成深色主題 PowerPoint 投影片 |
+| `export_pptx(title, slides_json, output_filename, theme="dark")` | 用九種版型的 slide grammar 生成 PowerPoint 投影片 |
 
 ### 支援的圖表類型
 
 `bar` · `line` · `area` · `pie` · `scatter` · `histogram` · `box` · `multi_bar` · `multi_line` · `heatmap` · `confusion_matrix`
+
+### 投影片版型 (PPTX)
+
+`export_pptx` 收 JSON array,每個物件的 `type` 欄選擇版型:
+
+| `type` | 用在 | 欄位 |
+|---|---|---|
+| `title` | 封面 | `title`, `subtitle?` |
+| `section` | 章節分隔 | `title`, `subtitle?` |
+| `content` | 條列重點(預設) | `title`, `subtitle?`, `bullets[]` |
+| `image` | 全幅圖片 + 圖注 | `title`, `image_path`, `note?` |
+| `two_column` | 左右對照(bullets / image / body) | `title`, `left:{…}`, `right:{…}` |
+| `quote` | 大段引文 + 出處 | `text`, `attribution?` |
+| `kpi` | 2–4 個重點數字卡片 | `title`, `kpis:[{value, label, change?}, …]` |
+| `chart` | **原生可編輯 PowerPoint chart**(bar / column / line / pie / area / doughnut) | `title`, `chart_type`, `categories[]`, `series:[{name, values[]}, …]`, `note?` |
+| `closing` | 結尾 / 聯絡資訊 | `title?`, `subtitle?`, `contact?` |
+
+### 主題
+
+`theme="dark"`(預設)· `theme="light"` · `theme="corporate"`
+
+每個主題是 `mcp/assets/templates/` 下真正的 `.pptx` 樣板,內含註冊好的 Office 色票(在 PowerPoint 的 `設計 → 色彩` 選單看得到),客戶要全 deck 換色一鍵就行。要手調樣式:用 PowerPoint 打開樣板 → `檢視 → 投影片母片` → 改完存回去,不用重 build。
 
 ---
 

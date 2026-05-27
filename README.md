@@ -61,7 +61,7 @@ The agent follows a four-step workflow for every task:
 - **CSV support** — reads CSV files directly via pandas, not just JSON
 - **Analytical narrative** — writes 1–2 sentence insights per chart and metric
 - **PDF export** — styled, self-contained PDF reports with embedded charts
-- **PowerPoint export** — dark-themed PPTX slide decks ready for presentations
+- **PowerPoint export** — template-driven `.pptx` slide decks. Nine layouts (title / section / content / image / two_column / quote / kpi / chart / closing), three themes (dark / light / corporate) backed by real Office colour schemes, and **native editable charts** clients can tweak data on after delivery
 - **Audience adaptation** — adjusts language and depth for technical vs. business audiences
 - **A2A-compatible** — exposes `/.well-known/agent-card.json` health endpoint
 - **Dynamic MCP support** — additional MCP servers can be assigned at runtime from the CoStaff dashboard
@@ -153,11 +153,38 @@ The built-in MCP server exposes the following tools:
 | `generate_chart(...)` | Generate a PNG chart (10+ types) |
 | `create_html_report(...)` | Assemble a styled HTML report with metrics, charts, and narrative |
 | `export_pdf(...)` | Convert HTML report to PDF via WeasyPrint |
-| `export_pptx(...)` | Generate a dark-themed PowerPoint slide deck |
+| `export_pptx(title, slides_json, output_filename, theme="dark")` | Generate a PowerPoint slide deck from a 9-layout slide grammar |
 
 ### Supported chart types
 
 `bar` · `line` · `area` · `pie` · `scatter` · `histogram` · `box` · `multi_bar` · `multi_line` · `heatmap` · `confusion_matrix`
+
+### Slide layouts (PPTX)
+
+`export_pptx` accepts a JSON array of slide objects. Each object's `type`
+field selects a layout:
+
+| `type` | Use when | Spec keys |
+|---|---|---|
+| `title` | Deck cover | `title`, `subtitle?` |
+| `section` | Divider between major parts of the deck | `title`, `subtitle?` |
+| `content` | Bullet list, the default | `title`, `subtitle?`, `bullets[]` |
+| `image` | Full-width image with caption | `title`, `image_path`, `note?` |
+| `two_column` | Side-by-side comparison (bullets / image / body) | `title`, `left:{…}`, `right:{…}` |
+| `quote` | Pull quote + attribution | `text`, `attribution?` |
+| `kpi` | 2–4 standout numbers in cards | `title`, `kpis:[{value, label, change?}, …]` |
+| `chart` | **Native editable PowerPoint chart** (bar / column / line / pie / area / doughnut) | `title`, `chart_type`, `categories[]`, `series:[{name, values[]}, …]`, `note?` |
+| `closing` | Thank-you / contact | `title?`, `subtitle?`, `contact?` |
+
+### Themes
+
+`theme="dark"` (default) · `theme="light"` · `theme="corporate"`
+
+Each theme is a real `.pptx` template under `mcp/assets/templates/`, with
+a registered Office colour scheme (visible under PowerPoint's `Design →
+Colors` picker) so clients can re-theme globally. To hand-polish a
+template, open it in PowerPoint → `View → Slide Master` → adjust → save
+— no Python rebuild needed.
 
 ---
 
