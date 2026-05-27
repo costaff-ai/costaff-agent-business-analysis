@@ -219,4 +219,146 @@ def test_export_pptx_image_slide(agent_dir):
     ])
     result = export_pptx("Image Deck", slides, "tr_img_deck.pptx")
     assert result.startswith("[OK]")
+
+
+# ── new layout types (section / two_column / quote / kpi / chart / closing) ────
+
+@pytest.mark.skipif(not HAS_PPTX, reason="python-pptx not installed")
+def test_export_pptx_section_slide(agent_dir):
+    slides = json.dumps([
+        {"type": "section", "title": "Part 2: Recommendations", "subtitle": "Three actionable steps"},
+    ])
+    result = export_pptx("Section", slides, "tr_section.pptx")
+    assert result.startswith("[OK]")
+    assert (agent_dir / "tr_section.pptx").exists()
+
+
+@pytest.mark.skipif(not HAS_PPTX, reason="python-pptx not installed")
+def test_export_pptx_two_column_bullets(agent_dir):
+    slides = json.dumps([
+        {"type": "two_column", "title": "Before vs After",
+         "left":  {"heading": "Before", "bullets": ["Slow",  "Manual", "Error-prone"]},
+         "right": {"heading": "After",  "bullets": ["Fast",  "Auto",   "Reliable"]}},
+    ])
+    result = export_pptx("Two Col", slides, "tr_two_col.pptx")
+    assert result.startswith("[OK]")
+
+
+@pytest.mark.skipif(not HAS_PPTX, reason="python-pptx not installed")
+def test_export_pptx_two_column_image_right(agent_dir):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    png_path = agent_dir / "tr_2col.png"
+    fig, ax = plt.subplots(figsize=(2, 2))
+    ax.bar(["a", "b"], [1, 2])
+    fig.savefig(str(png_path), dpi=50); plt.close(fig)
+    slides = json.dumps([
+        {"type": "two_column", "title": "Findings",
+         "left":  {"heading": "Insight", "bullets": ["Up 22%", "Region: north"]},
+         "right": {"image_path": str(png_path)}},
+    ])
+    result = export_pptx("Two Col Img", slides, "tr_two_col_img.pptx")
+    assert result.startswith("[OK]")
+
+
+@pytest.mark.skipif(not HAS_PPTX, reason="python-pptx not installed")
+def test_export_pptx_quote_slide(agent_dir):
+    slides = json.dumps([
+        {"type": "quote", "text": "We saw revenue jump 30% in Q3.",
+         "attribution": "CFO, internal review 2026"},
+    ])
+    result = export_pptx("Quote", slides, "tr_quote.pptx")
+    assert result.startswith("[OK]")
+
+
+@pytest.mark.skipif(not HAS_PPTX, reason="python-pptx not installed")
+def test_export_pptx_kpi_slide(agent_dir):
+    slides = json.dumps([
+        {"type": "kpi", "title": "Q3 Highlights", "kpis": [
+            {"value": "$2.4M", "label": "Revenue", "change": "+18%"},
+            {"value": "1,250", "label": "New Customers", "change": "+22%"},
+            {"value": "87%",   "label": "Retention",     "change": "+3pt"},
+        ]},
+    ])
+    result = export_pptx("KPI", slides, "tr_kpi.pptx")
+    assert result.startswith("[OK]")
+
+
+@pytest.mark.skipif(not HAS_PPTX, reason="python-pptx not installed")
+def test_export_pptx_chart_native(agent_dir):
+    slides = json.dumps([
+        {"type": "chart", "title": "Quarterly Revenue", "chart_type": "column",
+         "categories": ["Q1", "Q2", "Q3", "Q4"],
+         "series": [
+             {"name": "2025", "values": [100, 110, 95, 130]},
+             {"name": "2026", "values": [115, 130, 145, 160]},
+         ],
+         "note": "Source: internal finance dashboard."},
+    ])
+    result = export_pptx("Chart", slides, "tr_chart.pptx")
+    assert result.startswith("[OK]")
+    assert (agent_dir / "tr_chart.pptx").exists()
+
+
+@pytest.mark.skipif(not HAS_PPTX, reason="python-pptx not installed")
+def test_export_pptx_chart_pie(agent_dir):
+    slides = json.dumps([
+        {"type": "chart", "title": "Market Share", "chart_type": "pie",
+         "categories": ["Us", "Competitor A", "Competitor B", "Others"],
+         "series": [{"name": "Share", "values": [42, 28, 18, 12]}]},
+    ])
+    result = export_pptx("Pie", slides, "tr_pie.pptx")
+    assert result.startswith("[OK]")
+
+
+@pytest.mark.skipif(not HAS_PPTX, reason="python-pptx not installed")
+def test_export_pptx_closing_slide(agent_dir):
+    slides = json.dumps([
+        {"type": "closing", "title": "Thank you", "subtitle": "Questions?",
+         "contact": "ba@costaff.app"},
+    ])
+    result = export_pptx("Closing", slides, "tr_closing.pptx")
+    assert result.startswith("[OK]")
+
+
+@pytest.mark.skipif(not HAS_PPTX, reason="python-pptx not installed")
+@pytest.mark.parametrize("theme_name", ["dark", "light", "corporate"])
+def test_export_pptx_themes(agent_dir, theme_name):
+    slides = json.dumps([
+        {"type": "title", "title": f"{theme_name} theme"},
+        {"type": "content", "title": "Bullets", "bullets": ["A", "B"]},
+    ])
+    result = export_pptx(f"Theme {theme_name}", slides, f"tr_theme_{theme_name}.pptx",
+                         theme=theme_name)
+    assert result.startswith("[OK]")
+    assert (agent_dir / f"tr_theme_{theme_name}.pptx").exists()
+
+
+@pytest.mark.skipif(not HAS_PPTX, reason="python-pptx not installed")
+def test_export_pptx_full_deck(agent_dir):
+    """End-to-end: a 9-slide deck exercising every layout in one go."""
+    slides = json.dumps([
+        {"type": "title", "title": "Q3 Sales", "subtitle": "FY2026 Review"},
+        {"type": "section", "title": "Highlights"},
+        {"type": "kpi", "title": "Headline numbers",
+         "kpis": [
+             {"value": "$2.4M", "label": "Revenue", "change": "+18%"},
+             {"value": "1,250", "label": "Customers", "change": "+22%"},
+         ]},
+        {"type": "content", "title": "What worked", "bullets": ["A", "B", "C"]},
+        {"type": "two_column", "title": "Compare",
+         "left":  {"heading": "Plan",   "bullets": ["x", "y"]},
+         "right": {"heading": "Actual", "bullets": ["a", "b"]}},
+        {"type": "chart", "title": "Monthly trend", "chart_type": "line",
+         "categories": ["Jul", "Aug", "Sep"],
+         "series": [{"name": "Revenue", "values": [800, 900, 1100]}]},
+        {"type": "quote", "text": "Best quarter we've ever shipped.",
+         "attribution": "CEO"},
+        {"type": "section", "title": "Next steps"},
+        {"type": "closing", "title": "Thank you", "contact": "ba@costaff.app"},
+    ])
+    result = export_pptx("Full Deck", slides, "tr_full_deck.pptx")
+    assert result.startswith("[OK]")
+    assert (agent_dir / "tr_full_deck.pptx").exists()
     assert (agent_dir / "tr_img_deck.pptx").exists()

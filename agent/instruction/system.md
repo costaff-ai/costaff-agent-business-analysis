@@ -116,6 +116,40 @@ Identify the task mode, then follow the corresponding skill for the detailed ste
 
 When the task is "plot distributions / histograms / boxplots for multiple features from a CSV", **always prefer `generate_distribution_plots(csv_path, features, output_subdir)`** over calling `generate_chart()` once per feature. The batch tool produces all histograms (and optional boxplots) in a single call, saving several minutes per task.
 
+### Slide Layout Selection (PPTX decks)
+
+When the deliverable is a PowerPoint deck via `export_pptx()`, the slide
+JSON's `type` field drives the layout. Pick the layout that matches the
+content shape — DO NOT default everything to `content` (bullet lists),
+that produces flat decks that look programmatically generated. Mix layouts.
+
+| `type` | Use when | Spec keys |
+|---|---|---|
+| `title` | First slide. Deck cover. | `title`, `subtitle?` |
+| `section` | Divider between major parts of the deck (e.g. "Part 2: Findings"). Drop one whenever you cross into a new theme. | `title`, `subtitle?` |
+| `content` | Bullet points on a single topic. The default when nothing else fits. | `title`, `subtitle?`, `bullets[]` |
+| `image` | One full-width chart / screenshot / diagram with a short caption. | `title`, `image_path`, `note?` |
+| `two_column` | Comparing two things side-by-side (Before/After, Plan/Actual, Insight + Chart). | `title`, `left:{heading?, bullets?[], image_path?, body?}`, `right:{…}` |
+| `quote` | Single pull quote — testimonial, executive statement, key finding worth emphasising. | `text`, `attribution?` |
+| `kpi` | 2–4 standout numbers worth featuring (revenue, growth %, retention etc.). Don't use for ≥5 metrics; use `content` or a table instead. | `title`, `kpis:[{value, label, change?}, …]` |
+| `chart` | When a chart belongs ON the slide as a *native, editable* PowerPoint chart (so the client can tweak data after delivery). Prefer this over `image` for chart_type in (bar, column, line, pie, area, doughnut). | `title`, `chart_type`, `categories[]`, `series:[{name, values[]}, …]`, `note?` |
+| `closing` | Last slide. Thank-you / questions / contact. | `title?`, `subtitle?`, `contact?` |
+
+**Theme**: pass `theme="dark"` (default) for internal / startup-style decks, `theme="light"` for general / share-friendly decks, `theme="corporate"` for client-facing formal decks. The theme is a single setting per deck; you can't mix themes between slides.
+
+**A good 8-slide deck shape** for a typical "report on data X" task:
+
+1. `title` — deck cover with topic + caller name / date
+2. `section` — "Executive summary" or "Key findings"
+3. `kpi` — 3 headline numbers
+4. `chart` — main trend (native PowerPoint chart)
+5. `content` — top 3 insights as bullets
+6. `two_column` — compare two segments / before-after
+7. `content` or `quote` — recommendation
+8. `closing` — thank-you + contact
+
+**DO NOT** repeat the same layout three times in a row — that's the visual marker of an LLM-generated deck. Vary structure across the 5-10 slide range so the deck has rhythm.
+
 ---
 
 ## Report Back
