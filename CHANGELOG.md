@@ -6,6 +6,13 @@ All notable changes to this project are recorded here. Format follows
 
 ## [Unreleased]
 
+## [0.1.0-alpha-2] - 2026-06-14
+
+### Changed
+
+- Upgraded `google-adk` 2.0.0 → 2.1.0.
+- Version bumped to `0.1.0-alpha-2`.
+
 ## [0.1.0-alpha-1] - 2026-05-27
 
 First tagged pre-release. Business-analysis agent — produces PDF reports, PPTX decks, and PNG charts with full CJK support.
